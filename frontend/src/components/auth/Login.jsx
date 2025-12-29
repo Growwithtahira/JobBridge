@@ -72,7 +72,7 @@ const Login = () => {
             <Navbar />
             <div className='flex items-center justify-center max-w-7xl mx-auto'>
                 {/* --- LOGIN BOX (Dark Gray Border) --- */}
-                <form onSubmit={submitHandler} className='w-1/2 border border-gray-800 rounded-md p-8 my-10 bg-gray-900 shadow-lg'>
+                <form onSubmit={submitHandler} className='w-1/2 border border-white-800 rounded-md p-8 my-10 bg-gray-900 shadow-lg'>
                     <h1 className='font-bold text-xl mb-5 text-white'>Login</h1>
                     
                     <div className='my-2'>
@@ -83,8 +83,8 @@ const Login = () => {
                             value={input.email}
                             name="email"
                             onChange={changeEventHandler}
-                            placeholder="patel@gmail.com"
-                            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500 placeholder-gray-500"
+                            placeholder="Enter your email address"
+                            className="bg-gray-800 text-white border-white-700 focus-visible:ring-yellow-500 placeholder-gray-500"
                         />
                     </div>
 
@@ -97,7 +97,7 @@ const Login = () => {
                             name="password"
                             onChange={changeEventHandler}
                             placeholder="Enter your password"
-                            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500 placeholder-gray-500"
+                            className="bg-gray-800 text-white border-white-700 focus-visible:ring-yellow-500 placeholder-gray-500"
                         />
                     </div>
 
