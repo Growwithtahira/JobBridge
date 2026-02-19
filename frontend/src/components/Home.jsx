@@ -7,6 +7,7 @@ import Footer from './shared/Footer'
 import useGetAllJobs from '@/hooks/useGetAllJobs'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import ScrollReveal from './shared/ScrollReveal'
 
 const Home = () => {
   useGetAllJobs();
@@ -21,8 +22,15 @@ const Home = () => {
     <div>
       <Navbar />
       <HeroSection />
-      <CategoryCarousel />
-      <LatestJobs />
+
+      <ScrollReveal>
+        <CategoryCarousel />
+      </ScrollReveal>
+
+      <ScrollReveal>
+        <LatestJobs />
+      </ScrollReveal>
+
       <Footer />
     </div>
   )

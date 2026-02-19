@@ -1,32 +1,54 @@
 import React from 'react'
 import { Badge } from './ui/badge'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion';
 
-const LatestJobCards = ({job}) => {
+const LatestJobCards = ({ job }) => {
     const navigate = useNavigate();
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <div onClick={()=> navigate(`/description/${job._id}`)} className='p-6 rounded-xl shadow-lg bg-[#111827] border border-gray-800 cursor-pointer hover:shadow-[0_0_20px_rgba(250,204,21,0.15)] hover:border-yellow-500/50 hover:-translate-y-1 transition-all duration-300 ease-in-out transform group'>
-            
-            {/* Company & Location */}
-            <div className='flex items-center justify-between mb-2'>
-                <h1 className='font-bold text-lg text-white group-hover:text-[#FACC15] transition-colors'>{job?.company?.name}</h1>
-                <p className='text-sm text-gray-400'>India</p>
+        <motion.div
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, rotate: 1 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            onClick={() => navigate(`/description/${job._id}`)}
+            className='p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100 cursor-pointer 
+            hover:border-orange-400/50 hover:shadow-xl hover:bg-white/80
+            transition-all duration-300 ease-in-out group flex flex-col justify-between h-full relative overflow-hidden'
+        >
+            {/* Glow Effect on Hover - Subtle warm glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-100/30 to-transparent -translate-x-full group-hover:animate-shimmer z-0" />
+
+            <div className='relative z-10'>
+                {/* Company & Location */}
+                <div className='flex items-center justify-between mb-3'>
+                    <div className='bg-gray-50 p-2 rounded-lg border border-gray-100 shadow-sm'>
+                        {/* Placeholder Logo if no image */}
+                        <h1 className='font-bold text-lg text-gray-900 group-hover:text-primary transition-colors'>{job?.company?.name?.charAt(0) || "C"}</h1>
+                    </div>
+                    <span className='text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full border border-gray-200'>India</span>
+                </div>
+
+                {/* Title & Description */}
+                <div className='mb-4'>
+                    <h1 className='font-bold text-xl text-gray-900 mb-2 truncate group-hover:text-primary transition-colors'>{job?.title}</h1>
+                    <p className='text-sm text-gray-600 line-clamp-3 leading-relaxed'>{job?.description}</p>
+                </div>
             </div>
 
-            {/* Title & Description */}
-            <div>
-                <h1 className='font-bold text-xl text-gray-200 my-2 truncate'>{job?.title}</h1>
-                <p className='text-sm text-gray-500 line-clamp-2'>{job?.description}</p>
-            </div>
-            
-            {/* Badges (Dark Mode Friendly) */}
-            <div className='flex items-center gap-2 mt-4 flex-wrap'>
-                <Badge className={'text-blue-400 bg-gray-800 border border-gray-700 font-bold'} variant="ghost">{job?.position} Positions</Badge>
-                <Badge className={'text-red-400 bg-gray-800 border border-gray-700 font-bold'} variant="ghost">{job?.jobType}</Badge>
-                <Badge className={'text-[#FACC15] bg-gray-800 border border-gray-700 font-bold'} variant="ghost">₹{job?.salary}</Badge>
+            {/* Badges - Premium Gen Z Style */}
+            <div className='relative z-10 flex items-center gap-2 mt-auto flex-wrap'>
+                <Badge className={'badge-premium'} variant="ghost">{job?.position} Positions</Badge>
+                <Badge className={'badge-premium'} variant="ghost">{job?.jobType}</Badge>
+                <Badge className={'badge-premium'} variant="ghost">₹{job?.salary}LPA</Badge>
             </div>
 
-        </div>
+        </motion.div>
     )
 }
 

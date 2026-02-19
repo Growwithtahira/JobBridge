@@ -4,7 +4,7 @@ import { Badge } from './ui/badge'
 import { useSelector } from 'react-redux'
 
 const AppliedJobTable = () => {
-    const {allAppliedJobs} = useSelector(store=>store.job);
+    const { allAppliedJobs } = useSelector(store => store.job);
     return (
         <div>
             <Table>
@@ -24,7 +24,7 @@ const AppliedJobTable = () => {
                                 <TableCell>{appliedJob?.createdAt?.split("T")[0]}</TableCell>
                                 <TableCell>{appliedJob.job?.title}</TableCell>
                                 <TableCell>{appliedJob.job?.company?.name}</TableCell>
-                                <TableCell className="text-right"><Badge className={`${appliedJob?.status === "rejected" ? 'bg-red-400' : appliedJob.status === 'pending' ? 'bg-gray-400' : 'bg-green-400'}`}>{appliedJob.status.toUpperCase()}</Badge></TableCell>
+                                <TableCell className="text-right"><Badge className={`${appliedJob?.status === "rejected" ? 'bg-red-100 text-red-600 border-red-200' : appliedJob.status === 'pending' ? 'bg-gray-100 text-gray-600 border-gray-200' : 'bg-green-100 text-green-600 border-green-200'} border`} variant="outline">{appliedJob.status.toUpperCase()}</Badge></TableCell>
                             </TableRow>
                         ))
                     }

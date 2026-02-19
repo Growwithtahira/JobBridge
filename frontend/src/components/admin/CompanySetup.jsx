@@ -21,7 +21,7 @@ const CompanySetup = () => {
         location: "",
         file: null
     });
-    const {singleCompany} = useSelector(store=>store.company);
+    const { singleCompany } = useSelector(store => store.company);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -72,90 +72,94 @@ const CompanySetup = () => {
             location: singleCompany.location || "",
             file: singleCompany.file || null
         })
-    },[singleCompany]);
+    }, [singleCompany]);
 
     return (
-        <div>
+        <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50 to-purple-50'>
             <Navbar />
-            <div className='max-w-xl mx-auto my-10'>
-                <form onSubmit={submitHandler}>
-                    <div className='flex items-center gap-5 p-8'>
-                      <Button onClick={() => navigate("/admin/companies")} variant="outline" className="flex items-center gap-2 text-white border-gray-700 bg-gray-800 hover:bg-gray-700">
-    <ArrowLeft />
-    <span>Back</span>
-</Button>
-                        <h1 className='font-bold text-xl'>Company Setup</h1>
+            <div className='max-w-xl mx-auto py-10 px-4'>
+                <form onSubmit={submitHandler} className='bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden p-8'>
+                    <div className='flex items-center gap-5 mb-8'>
+                        <Button onClick={() => navigate("/admin/companies")} variant="outline" className="flex items-center gap-2 text-gray-600 border-gray-300 hover:bg-gray-100 rounded-xl">
+                            <ArrowLeft />
+                            <span>Back</span>
+                        </Button>
+                        <h1 className='font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600'>Company Setup</h1>
                     </div>
-                    <div className='grid grid-cols-2 gap-4'>
-    {/* 1. Company Name */}
-    <div>
-        <Label className="text-white">Company Name</Label>
-        <Input
-            type="text"
-            name="name"
-            value={input.name}
-            onChange={changeEventHandler}
-            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500"
-        />
-    </div>
 
-    {/* 2. Description */}
-    <div>
-        <Label className="text-white">Description</Label>
-        <Input
-            type="text"
-            name="description"
-            value={input.description}
-            onChange={changeEventHandler}
-            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500"
-        />
-    </div>
+                    <div className='space-y-4'>
+                        {/* 1. Company Name */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Company Name</Label>
+                            <Input
+                                type="text"
+                                name="name"
+                                value={input.name}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. JobBridge"
+                            />
+                        </div>
 
-    {/* 3. Website (Fix: Name & Value changed) */}
-    <div>
-        <Label className="text-white">Website</Label>
-        <Input
-            type="text"
-            name="website"
-            value={input.website}
-            onChange={changeEventHandler}
-            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500"
-        />
-    </div>
+                        {/* 2. Description */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Description</Label>
+                            <Input
+                                type="text"
+                                name="description"
+                                value={input.description}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. A platform for job seekers..."
+                            />
+                        </div>
 
-    {/* 4. Location (Fix: Name & Value changed) */}
-    <div>
-        <Label className="text-white">Location</Label>
-        <Input
-            type="text"
-            name="location"
-            value={input.location}
-            onChange={changeEventHandler}
-            className="bg-gray-800 text-white border-gray-700 focus-visible:ring-yellow-500"
-        />
-    </div>
+                        {/* 3. Website */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Website</Label>
+                            <Input
+                                type="text"
+                                name="website"
+                                value={input.website}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. https://jobbridge.com"
+                            />
+                        </div>
 
-    {/* 5. Logo (Fix: Restore File Input) */}
-    <div>
-        <Label className="text-white">Logo</Label>
-        <Input
-            type="file"
-            accept="image/*"
-            onChange={changeFileHandler}
-            className="bg-gray-800 text-white border-gray-700 file:text-white file:bg-gray-700"
-        />
-    </div>
-</div>
+                        {/* 4. Location */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Location</Label>
+                            <Input
+                                type="text"
+                                name="location"
+                                value={input.location}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. New Delhi, India"
+                            />
+                        </div>
 
-{/* Update Button ko bhi Yellow Theme do */}
-{
-    loading 
-    ? <Button className="w-full my-4 bg-yellow-400 text-black"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> 
-    : <Button type="submit" className="w-full my-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold">Update</Button>
-}
+                        {/* 5. Logo */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Logo</Label>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={changeFileHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    {
+                        loading
+                            ? <Button className="w-full mt-8 h-12 bg-violet-600 text-white rounded-xl shadow-lg"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button>
+                            : <Button type="submit" className="w-full mt-8 h-12 font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">Update Company</Button>
+                    }
                 </form>
             </div>
-
         </div>
     )
 }

@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Navbar from './components/shared/Navbar'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
+import ForgotPassword from './components/auth/ForgotPassword'
 import Home from './components/Home'
 import Jobs from './components/Jobs'
 import Browse from './components/Browse'
@@ -16,66 +17,74 @@ import Applicants from './components/admin/Applicants'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 
 
+import InteractiveBackground from './components/shared/InteractiveBackground'
+import PageTransition from './components/shared/PageTransition'
+
 const appRouter = createBrowserRouter([
   {
     path: '/',
-    element: <Home />
+    element: <PageTransition><Home /></PageTransition>
   },
   {
     path: '/login',
-    element: <Login />
+    element: <PageTransition><Login /></PageTransition>
   },
   {
     path: '/signup',
-    element: <Signup />
+    element: <PageTransition><Signup /></PageTransition>
+  },
+  {
+    path: "/forgot-password",
+    element: <PageTransition><ForgotPassword /></PageTransition>
   },
   {
     path: "/jobs",
-    element: <Jobs />
+    element: <PageTransition><Jobs /></PageTransition>
   },
   {
     path: "/description/:id",
-    element: <JobDescription />
+    element: <PageTransition><JobDescription /></PageTransition>
   },
   {
     path: "/browse",
-    element: <Browse />
+    element: <PageTransition><Browse /></PageTransition>
   },
   {
     path: "/profile",
-    element: <Profile />
+    element: <PageTransition><Profile /></PageTransition>
   },
   // admin ke liye yha se start hoga
   {
-    path:"/admin/companies",
-    element: <ProtectedRoute><Companies/></ProtectedRoute>
+    path: "/admin/companies",
+    element: <ProtectedRoute><PageTransition><Companies /></PageTransition></ProtectedRoute>
   },
   {
-    path:"/admin/companies/create",
-    element: <ProtectedRoute><CompanyCreate/></ProtectedRoute> 
+    path: "/admin/companies/create",
+    element: <ProtectedRoute><PageTransition><CompanyCreate /></PageTransition></ProtectedRoute>
   },
   {
-    path:"/admin/companies/:id",
-    element:<ProtectedRoute><CompanySetup/></ProtectedRoute> 
+    path: "/admin/companies/:id",
+    element: <ProtectedRoute><PageTransition><CompanySetup /></PageTransition></ProtectedRoute>
   },
   {
-    path:"/admin/jobs",
-    element:<ProtectedRoute><AdminJobs/></ProtectedRoute> 
+    path: "/admin/jobs",
+    element: <ProtectedRoute><PageTransition><AdminJobs /></PageTransition></ProtectedRoute>
   },
   {
-    path:"/admin/jobs/create",
-    element:<ProtectedRoute><PostJob/></ProtectedRoute> 
+    path: "/admin/jobs/create",
+    element: <ProtectedRoute><PageTransition><PostJob /></PageTransition></ProtectedRoute>
   },
   {
-    path:"/admin/jobs/:id/applicants",
-    element:<ProtectedRoute><Applicants/></ProtectedRoute> 
+    path: "/admin/jobs/:id/applicants",
+    element: <ProtectedRoute><PageTransition><Applicants /></PageTransition></ProtectedRoute>
   },
 
 ])
 function App() {
 
   return (
-    <div>
+    <div className='relative'>
+      <InteractiveBackground />
       <RouterProvider router={appRouter} />
     </div>
   )

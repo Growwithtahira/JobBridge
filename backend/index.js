@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: 'https://jobbridge-v15s.onrender.com',
+    origin: ['https://jobbridge-v15s.onrender.com'],
     credentials: true
 }
 app.use(cors(corsOptions));

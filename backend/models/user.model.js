@@ -14,25 +14,31 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    password:{
-        type:String,
-        required:true,
+    password: {
+        type: String,
+        required: function () { return !this.googleId; } // Only required if not google login, but for simplicity let's make it false and handle in controller
     },
-    role:{
-        type:String,
-        enum:['student','recruiter'],
-        required:true
+    googleId: {
+        type: String, // Store Google UID
+        default: null
     },
-    profile:{
-        bio:{type:String},
-        skills:[{type:String}],
-        resume:{type:String}, // URL to resume file
-        resumeOriginalName:{type:String},
-        company:{type:mongoose.Schema.Types.ObjectId, ref:'Company'}, 
-        profilePhoto:{
-            type:String,
-            default:""
+    role: {
+        type: String,
+        enum: ['student', 'recruiter'],
+        required: true
+    },
+    profile: {
+        bio: { type: String },
+        skills: [{ type: String }],
+        resume: { type: String }, // URL to resume file
+        resumeOriginalName: { type: String },
+        company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+        profilePhoto: {
+            type: String,
+            default: ""
         }
     },
-},{timestamps:true});
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+}, { timestamps: true });
 export const User = mongoose.model('User', userSchema);

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { setSearchedQuery } from '@/redux/jobSlice';
 
 const category = [
-   "Delivery Partner",       // Swiggy/Zomato/Local delivery
+    "Delivery Partner",       // Swiggy/Zomato/Local delivery
     "Retail & Sales",         // Dukan/Showroom jobs
     "Office Admin",           // Receptionist/Computer Operator
     "Telecalling / BPO",      // Call center jobs
@@ -29,8 +29,8 @@ const CategoryCarousel = () => {
                 <CarouselContent>
                     {
                         category.map((cat, index) => (
-                            <CarouselItem className="md:basis-1/2 lg-basis-1/3">
-                                <Button onClick={()=>searchJobHandler(cat)} variant="outline" className="rounded-full">{cat}</Button>
+                            <CarouselItem className="basis-1/2 md:basis-1/3 lg:basis-1/3">
+                                <Button onClick={() => searchJobHandler(cat)} variant="outline" className="rounded-full bg-white border-gray-200 text-gray-700 hover:scale-105 transition-all duration-300 hover:bg-violet-600 hover:text-white hover:border-violet-600 hover:shadow-lg w-full h-12 text-sm md:text-md font-medium whitespace-normal leading-tight">{cat}</Button>
                             </CarouselItem>
                         ))
                     }

@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
-         
+
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
@@ -16,9 +17,9 @@ export const register = async (req, res) => {
         };
         const file = req.file;
         const fileUri = getDataUri(file);
-        
+
         // 1. REGISTER: Yahan PHOTO upload hoti hai, isliye "raw" mat lagana.
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content); 
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
         const user = await User.findOne({ email });
         if (user) {
@@ -35,8 +36,8 @@ export const register = async (req, res) => {
             phoneNumber,
             password: hashedPassword,
             role,
-            profile:{
-                profilePhoto:cloudResponse.secure_url,
+            profile: {
+                profilePhoto: cloudResponse.secure_url,
             }
         });
 
@@ -52,7 +53,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
-        
+
         if (!email || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
@@ -134,8 +135,8 @@ export const updateProfile = async (req, res) => {
         if (skills) {
             skillsArray = skills.split(",");
         }
-        
-        const userId = req.id; 
+
+        const userId = req.id;
         let user = await User.findById(userId);
 
         if (!user) {
@@ -151,10 +152,10 @@ export const updateProfile = async (req, res) => {
         if (phoneNumber) user.phoneNumber = phoneNumber;
         if (bio) user.profile.bio = bio;
         if (skills) user.profile.skills = skillsArray;
-      
+
         // Resume updates only if file was uploaded
         if (cloudResponse) {
-            user.profile.resume = cloudResponse.secure_url; 
+            user.profile.resume = cloudResponse.secure_url;
             user.profile.resumeOriginalName = file.originalname;
         }
 
@@ -176,10 +177,141 @@ export const updateProfile = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        // Error case mein bhi response bhejna zaroori hai taaki frontend loading band kare
         return res.status(500).json({
             message: "Internal server error",
             success: false
         });
+    }
+}
+
+// --- Forgot Password Logic ---
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found with this email",
+                success: false
+            });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save OTP to DB (Expires in 10 mins)
+        user.resetPasswordToken = otp;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+        await user.save();
+
+        // Send Email
+        const emailSent = await sendEmail({
+            email,
+            subject: "JobBridge Password Reset OTP",
+            message: otp
+        });
+
+        if (!emailSent) {
+            return res.status(500).json({
+                message: "Failed to send email. Please try again.",
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            message: `OTP sent to ${email}`,
+            success: true,
+        });
+
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: otp,
+            resetPasswordExpires: { $gt: Date.now() } // Check if token is not expired
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP",
+                success: false
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+
+        // Clear reset token fields
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        return res.status(200).json({
+            message: "Password reset successfully. Please login.",
+            success: true
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+}
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { uid, email, displayName, photoURL, role } = req.body;
+
+        if (!uid || !email) {
+            return res.status(400).json({ message: "Google Auth Data Missing", success: false });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Register new user
+            if (!role) {
+                return res.status(400).json({ message: "Role is required for new registration. Please Signup first.", success: false });
+            }
+            user = await User.create({
+                fullname: displayName,
+                email,
+                phoneNumber: 0,
+                password: "",
+                role,
+                profile: {
+                    profilePhoto: photoURL
+                },
+                googleId: uid
+            });
+        }
+
+        const tokenData = { userId: user._id };
+        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
+
+        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+            message: `Welcome back ${user.fullname}`,
+            user,
+            success: true
+        });
+
+    } catch (error) {
+        console.error("Google Login Error:", error);
+        return res.status(500).json({ message: "Internal Server Error", success: false, error: error.message });
     }
 }

@@ -25,7 +25,7 @@ const PostJob = () => {
         position: 0,
         companyId: ""
     });
-    const [loading, setLoading]= useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const { companies } = useSelector(store => store.company);
@@ -34,169 +34,186 @@ const PostJob = () => {
     };
 
     const selectChangeHandler = (value) => {
-        const selectedCompany = companies.find((company)=> company.name.toLowerCase() === value);
-        setInput({...input, companyId:selectedCompany._id});
+        const selectedCompany = companies.find((company) => company.name.toLowerCase() === value);
+        setInput({ ...input, companyId: selectedCompany._id });
     };
 
     const submitHandler = async (e) => {
         e.preventDefault();
         try {
             setLoading(true);
-            const res = await axios.post(`${JOB_API_END_POINT}/post`, input,{
-                headers:{
-                    'Content-Type':'application/json'
+            const res = await axios.post(`${JOB_API_END_POINT}/post`, input, {
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                withCredentials:true
+                withCredentials: true
             });
-            if(res.data.success){
+            if (res.data.success) {
                 toast.success(res.data.message);
                 navigate("/admin/jobs");
             }
         } catch (error) {
             toast.error(error.response.data.message);
-        } finally{
+        } finally {
             setLoading(false);
         }
     }
 
     return (
-        <div>
+        <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50 to-purple-50'>
             <Navbar />
-            <div className='flex items-center justify-center w-screen my-5'>
-            <form onSubmit={submitHandler} className='p-8 max-w-4xl border border-gray-700 bg-gray-900 shadow-lg rounded-md text-white'>
-    <div className='grid grid-cols-2 gap-2'>
-        {/* 1. Title */}
-        <div>
-            <Label className="text-white">Title</Label>
-            <Input
-                type="string"
-                name="title"
-                value={input.title}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
-        
-        {/* 2. Description */}
-        <div>
-            <Label className="text-white">Description</Label>
-            <Input
-                type="text"
-                name="description"
-                value={input.description}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+            <div className='flex items-center justify-center w-full py-10 px-4'>
+                <form onSubmit={submitHandler} className='p-8 max-w-4xl w-full bg-white/70 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl text-gray-800'>
 
-        {/* 3. Requirements */}
-        <div>
-            <Label className="text-white">Requirements</Label>
-            <Input
-                type="string"
-                name="requirements"
-                value={input.requirements}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                    <div className='mb-6 text-center md:text-left'>
+                        <h2 className='text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600'>Post a New Job</h2>
+                        <p className='text-gray-500 mt-1'>Fill in the details to find your next great hire.</p>
+                    </div>
 
-        {/* 4. Salary */}
-        <div>
-            <Label className="text-white">Salary</Label>
-            <Input
-                type="number"
-                name="salary"
-                value={input.salary}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        {/* 1. Title */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Job Title</Label>
+                            <Input
+                                type="text"
+                                name="title"
+                                value={input.title}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. Senior React Developer"
+                            />
+                        </div>
 
-        {/* 5. Location */}
-        <div>
-            <Label className="text-white">Location</Label>
-            <Input
-                type="string"
-                name="location"
-                value={input.location}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                        {/* 2. Description */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Description</Label>
+                            <Input
+                                type="text"
+                                name="description"
+                                value={input.description}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="Brief job description..."
+                            />
+                        </div>
 
-        {/* 6. Job Type */}
-        <div>
-            <Label className="text-white">Job Type</Label>
-            <Input
-                type="string"
-                name="jobType"
-                value={input.jobType}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                        {/* 3. Requirements */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Requirements</Label>
+                            <Input
+                                type="text"
+                                name="requirements"
+                                value={input.requirements}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="React, Node.js, MongoDB..."
+                            />
+                        </div>
 
-        {/* 7. Experience */}
-        <div>
-            <Label className="text-white">Experience Level</Label>
-            <Input
-                type="string"
-                name="experience"
-                value={input.experience}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                        {/* 4. Salary */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Salary (LPA)</Label>
+                            <Input
+                                type="number"
+                                name="salary"
+                                value={input.salary}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. 12"
+                            />
+                        </div>
 
-        {/* 8. Position */}
-        <div>
-            <Label className="text-white">No of Position</Label>
-            <Input
-                type="number"
-                name="position"
-                value={input.position}
-                onChange={changeEventHandler}
-                className="focus-visible:ring-offset-0 focus-visible:ring-yellow-500 my-1 bg-gray-800 text-white border-gray-700"
-            />
-        </div>
+                        {/* 5. Location */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Location</Label>
+                            <Input
+                                type="text"
+                                name="location"
+                                value={input.location}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. Bangalore, Remote"
+                            />
+                        </div>
 
-        {/* 9. Select Company */}
-        {
-            companies.length > 0 && (
-                <Select onValueChange={selectChangeHandler}>
-                    <SelectTrigger className="w-[180px] bg-gray-800 text-white border-gray-700 focus:ring-yellow-500">
-                        <SelectValue placeholder="Select a Company" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 text-white border-gray-700">
-                        <SelectGroup>
-                            {
-                                companies.map((company) => {
-                                    return (
-                                        <SelectItem key={company._id} value={company?.name?.toLowerCase()} className="cursor-pointer focus:bg-gray-700 focus:text-white">
-                                            {company.name}
-                                        </SelectItem>
-                                    )
-                                })
-                            }
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-            )
-        }
-    </div> 
-    
-    {/* Submit Button */}
-    {
-        loading 
-        ? <Button className="w-full my-4 bg-yellow-400 text-black"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> 
-        : <Button type="submit" className="w-full my-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold">Post New Job</Button>
-    }
-    
-    {
-        companies.length === 0 && <p className='text-xs text-red-400 font-bold text-center my-3'>*Please register a company first, before posting a job</p>
-    }
-</form>
+                        {/* 6. Job Type */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Job Type</Label>
+                            <Input
+                                type="text"
+                                name="jobType"
+                                value={input.jobType}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. Full-time, Internship"
+                            />
+                        </div>
+
+                        {/* 7. Experience */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">Experience Level</Label>
+                            <Input
+                                type="text"
+                                name="experience"
+                                value={input.experience}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. 2-5 Years"
+                            />
+                        </div>
+
+                        {/* 8. Position */}
+                        <div className='space-y-2'>
+                            <Label className="text-gray-700 font-semibold">No of Positions</Label>
+                            <Input
+                                type="number"
+                                name="position"
+                                value={input.position}
+                                onChange={changeEventHandler}
+                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
+                                placeholder="e.g. 5"
+                            />
+                        </div>
+
+                        {/* 9. Select Company */}
+                        {
+                            companies.length > 0 && (
+                                <div className='space-y-2'>
+                                    <Label className="text-gray-700 font-semibold">Select Company</Label>
+                                    <Select onValueChange={selectChangeHandler}>
+                                        <SelectTrigger className="w-full bg-white/50 border-gray-200 focus:ring-violet-500 rounded-xl text-gray-800">
+                                            <SelectValue placeholder="Select a Company" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white border-gray-200 text-gray-800 shadow-xl rounded-xl">
+                                            <SelectGroup>
+                                                {
+                                                    companies.map((company) => {
+                                                        return (
+                                                            <SelectItem key={company._id} value={company?.name?.toLowerCase()} className="cursor-pointer hover:bg-violet-50 focus:bg-violet-50 focus:text-violet-700">
+                                                                {company.name}
+                                                            </SelectItem>
+                                                        )
+                                                    })
+                                                }
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )
+                        }
+                    </div>
+
+                    {/* Submit Button */}
+                    {
+                        loading
+                            ? <Button className="w-full mt-8 h-12 bg-violet-600 text-white rounded-xl shadow-lg"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button>
+                            : <Button type="submit" className="w-full mt-8 h-12 font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">Post New Job</Button>
+                    }
+
+                    {
+                        companies.length === 0 && <p className='text-xs text-red-500 font-bold text-center mt-3'>*Please register a company first, before posting a job</p>
+                    }
+                </form>
             </div>
         </div>
     )

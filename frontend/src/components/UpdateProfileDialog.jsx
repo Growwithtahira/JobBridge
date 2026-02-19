@@ -71,54 +71,54 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     return (
         <div>
             <Dialog open={open} onOpenChange={setOpen}>
-                {/* Main Modal Background Black/Gray */}
-                <DialogContent className="sm:max-w-[425px] bg-gray-900 text-white border-gray-700" onInteractOutside={() => setOpen(false)}>
-                    
+                {/* Main Modal - Premium Light Theme */}
+                <DialogContent className="sm:max-w-[425px] bg-white text-gray-900 border-gray-100 shadow-2xl" onInteractOutside={() => setOpen(false)}>
+
                     <DialogHeader>
-                        <DialogTitle className="text-white">Update Profile</DialogTitle>
+                        <DialogTitle className="text-gray-900 font-bold text-xl">Update Profile</DialogTitle>
                     </DialogHeader>
-                    
+
                     <form onSubmit={submitHandler}>
                         <div className='grid gap-4 py-4'>
                             {/* --- Common Fields --- */}
-                            
+
                             {/* Name Input */}
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="fullname" className="text-right text-gray-300">Name</Label>
-                                <Input 
-                                    id="fullname" name="fullname" 
-                                    value={input.fullname} onChange={changeEventHandler} 
-                                    className="col-span-3 bg-gray-800 text-white border-gray-600 focus-visible:ring-yellow-500" 
+                                <Label htmlFor="fullname" className="text-right text-gray-600 font-medium">Name</Label>
+                                <Input
+                                    id="fullname" name="fullname"
+                                    value={input.fullname} onChange={changeEventHandler}
+                                    className="col-span-3 bg-white text-gray-800 border-gray-200 focus-visible:ring-violet-500"
                                 />
                             </div>
 
                             {/* Email Input */}
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="email" className="text-right text-gray-300">Email</Label>
-                                <Input 
-                                    id="email" name="email" 
-                                    value={input.email} onChange={changeEventHandler} 
-                                    className="col-span-3 bg-gray-800 text-white border-gray-600 focus-visible:ring-yellow-500" 
+                                <Label htmlFor="email" className="text-right text-gray-600 font-medium">Email</Label>
+                                <Input
+                                    id="email" name="email"
+                                    value={input.email} onChange={changeEventHandler}
+                                    className="col-span-3 bg-white text-gray-800 border-gray-200 focus-visible:ring-violet-500"
                                 />
                             </div>
 
                             {/* Phone Input */}
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="phoneNumber" className="text-right text-gray-300">Number</Label>
-                                <Input 
-                                    id="phoneNumber" name="phoneNumber" 
-                                    value={input.phoneNumber} onChange={changeEventHandler} 
-                                    className="col-span-3 bg-gray-800 text-white border-gray-600 focus-visible:ring-yellow-500" 
+                                <Label htmlFor="phoneNumber" className="text-right text-gray-600 font-medium">Number</Label>
+                                <Input
+                                    id="phoneNumber" name="phoneNumber"
+                                    value={input.phoneNumber} onChange={changeEventHandler}
+                                    className="col-span-3 bg-white text-gray-800 border-gray-200 focus-visible:ring-violet-500"
                                 />
                             </div>
 
                             {/* Bio Input */}
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="bio" className="text-right text-gray-300">Bio</Label>
-                                <Input 
-                                    id="bio" name="bio" 
-                                    value={input.bio} onChange={changeEventHandler} 
-                                    className="col-span-3 bg-gray-800 text-white border-gray-600 focus-visible:ring-yellow-500" 
+                                <Label htmlFor="bio" className="text-right text-gray-600 font-medium">Bio</Label>
+                                <Input
+                                    id="bio" name="bio"
+                                    value={input.bio} onChange={changeEventHandler}
+                                    className="col-span-3 bg-white text-gray-800 border-gray-200 focus-visible:ring-violet-500"
                                 />
                             </div>
 
@@ -127,20 +127,20 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                 user.role === 'student' && (
                                     <>
                                         <div className='grid grid-cols-4 items-center gap-4'>
-                                            <Label htmlFor="skills" className="text-right text-gray-300">Skills</Label>
-                                            <Input 
-                                                id="skills" name="skills" 
-                                                value={input.skills} onChange={changeEventHandler} 
-                                                className="col-span-3 bg-gray-800 text-white border-gray-600 focus-visible:ring-yellow-500" 
-                                                placeholder="React, Node, HTML" 
+                                            <Label htmlFor="skills" className="text-right text-gray-600 font-medium">Skills</Label>
+                                            <Input
+                                                id="skills" name="skills"
+                                                value={input.skills} onChange={changeEventHandler}
+                                                className="col-span-3 bg-white text-gray-800 border-gray-200 focus-visible:ring-violet-500"
+                                                placeholder="React, Node, HTML"
                                             />
                                         </div>
                                         <div className='grid grid-cols-4 items-center gap-4'>
-                                            <Label htmlFor="file" className="text-right text-gray-300">Resume</Label>
-                                            <Input 
-                                                id="file" name="file" type="file" accept="application/pdf" 
-                                                onChange={fileChangeHandler} 
-                                                className="col-span-3 bg-gray-800 text-white border-gray-600 cursor-pointer file:text-white file:bg-gray-700" 
+                                            <Label htmlFor="file" className="text-right text-gray-600 font-medium">Resume</Label>
+                                            <Input
+                                                id="file" name="file" type="file" accept="application/pdf"
+                                                onChange={fileChangeHandler}
+                                                className="col-span-3 bg-white text-gray-800 border-gray-200 cursor-pointer file:text-primary file:bg-purple-50 hover:file:bg-purple-100"
                                             />
                                         </div>
                                     </>
@@ -149,9 +149,9 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                         </div>
                         <DialogFooter>
                             {
-                                loading 
-                                ? <Button className="w-full my-4 bg-yellow-500 hover:bg-yellow-600 text-black"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Updating... </Button> 
-                                : <Button type="submit" className="w-full my-4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-[0_0_10px_rgba(250,204,21,0.5)]">Update</Button>
+                                loading
+                                    ? <Button className="w-full my-4 bg-primary hover:bg-violet-700 text-white"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Updating... </Button>
+                                    : <Button type="submit" className="w-full my-4 bg-primary hover:bg-violet-700 text-white font-bold shadow-md hover:shadow-lg transition-all">Update</Button>
                             }
                         </DialogFooter>
                     </form>
