@@ -23,7 +23,10 @@ const corsOptions = {
     origin: ['https://jobbridge-v15s.onrender.com'],
     credentials: true
 }
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: "https://job-bridge-taupe.vercel.app", // आपका वर्सेल लिंक
+  credentials: true
+}));
 
 const PORT = process.env.PORT || 3000;
 
