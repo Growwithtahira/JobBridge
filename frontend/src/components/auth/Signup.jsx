@@ -29,6 +29,8 @@ const Signup = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [activeField, setActiveField] = useState(null);
     const [authError, setAuthError] = useState(false);
+    const [step, setStep] = useState(1);
+    const [otp, setOtp] = useState("");
 
     const { loading, user } = useSelector(store => store.auth);
     const navigate = useNavigate();
@@ -63,13 +65,35 @@ const Signup = () => {
                 withCredentials: true,
             });
             if (res.data.success) {
-                navigate("/login");
+                setStep(2);
                 toast.success(res.data.message);
             }
         } catch (error) {
             console.log(error);
             setAuthError(true);
             toast.error(error.response?.data?.message || "Something went wrong");
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+
+    const verifyOtpHandler = async (e) => {
+        e.preventDefault();
+        try {
+            dispatch(setLoading(true));
+            const res = await axios.post(`${USER_API_END_POINT}/verify-otp`, { email: input.email, otp }, {
+                headers: { 'Content-Type': "application/json" },
+                withCredentials: true,
+            });
+            if (res.data.success) {
+                dispatch(setUser(res.data.user));
+                navigate("/");
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            setAuthError(true);
+            toast.error(error.response?.data?.message || "Invalid OTP");
         } finally {
             dispatch(setLoading(false));
         }
@@ -123,12 +147,14 @@ const Signup = () => {
                             activeField === 'phoneNumber' ? input.phoneNumber.length : 0
                 }
             />
-            <div className='mb-6 text-center'>
-                <h1 className='text-3xl font-extrabold text-indigo-900 mb-2'>Create Account</h1>
-                <p className='text-gray-500 font-medium'>Join the community of professionals</p>
-            </div>
+            {step === 1 ? (
+                <>
+                    <div className='mb-6 text-center'>
+                        <h1 className='text-3xl font-extrabold text-indigo-900 mb-2'>Create Account</h1>
+                        <p className='text-gray-500 font-medium'>Join the community of professionals</p>
+                    </div>
 
-            <form onSubmit={submitHandler} className='space-y-4'>
+                    <form onSubmit={submitHandler} className='space-y-4'>
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     <div className='space-y-2'>
@@ -140,7 +166,7 @@ const Signup = () => {
                             onChange={changeEventHandler}
                             onFocus={() => setActiveField('fullname')}
                             onBlur={() => setActiveField(null)}
-                            placeholder="John Doe"
+                            placeholder="Full Name"
                             className="h-10 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                         />
                     </div>
@@ -153,7 +179,7 @@ const Signup = () => {
                             onChange={changeEventHandler}
                             onFocus={() => setActiveField('phoneNumber')}
                             onBlur={() => setActiveField(null)}
-                            placeholder="1234567890"
+                            placeholder="Mobile Number"
                             className="h-10 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                         />
                     </div>
@@ -168,7 +194,7 @@ const Signup = () => {
                         onChange={changeEventHandler}
                         onFocus={() => setActiveField('email')}
                         onBlur={() => setActiveField(null)}
-                        placeholder="name@example.com"
+                        placeholder="Email ID"
                         className="h-10 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                     />
                 </div>
@@ -183,7 +209,7 @@ const Signup = () => {
                             onChange={changeEventHandler}
                             onFocus={() => setActiveField('password')}
                             onBlur={() => setActiveField(null)}
-                            placeholder="••••••••"
+                            placeholder="Password (min 6 characters)"
                             className="h-10 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                         />
                         <button
@@ -275,7 +301,51 @@ const Signup = () => {
                     <Link to="/login" className='text-primary font-bold hover:underline transition-all'>Login</Link>
                 </div>
 
-            </form>
+                    </form>
+                </>
+            ) : (
+                <>
+                    <div className='mb-6 text-center'>
+                        <h1 className='text-3xl font-extrabold text-indigo-900 mb-2'>Verify Email</h1>
+                        <p className='text-gray-500 font-medium'>We've sent a 6-digit OTP to <span className="font-bold">{input.email}</span></p>
+                    </div>
+
+                    <form onSubmit={verifyOtpHandler} className='space-y-4'>
+                        <div className='space-y-2 mt-8'>
+                            <Label className="text-gray-700 font-semibold text-center block mb-4">Enter 6-Digit OTP</Label>
+                            <Input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => {
+                                    setOtp(e.target.value);
+                                    if(authError) setAuthError(false);
+                                }}
+                                onFocus={() => setActiveField('otp')}
+                                onBlur={() => setActiveField(null)}
+                                placeholder="------"
+                                maxLength={6}
+                                className="h-14 text-center text-3xl tracking-[0.5em] font-bold bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl uppercase"
+                            />
+                        </div>
+
+                        {loading ? (
+                            <Button className="w-full h-12 text-md font-bold bg-primary hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center mt-8">
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Verifying...
+                            </Button>
+                        ) : (
+                            <Button disabled={otp.length !== 6} type="submit" className="w-full h-12 text-md font-bold bg-primary hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-1 mt-8 disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed">
+                                Verify & Continue
+                            </Button>
+                        )}
+                        
+                        <div className='text-center mt-6'>
+                            <button type="button" onClick={() => { setStep(1); setOtp(""); }} className='text-sm text-gray-500 hover:text-primary font-bold transition-colors underline'>
+                                Change email address?
+                            </button>
+                        </div>
+                    </form>
+                </>
+            )}
         </AuthLayout>
     )
 }

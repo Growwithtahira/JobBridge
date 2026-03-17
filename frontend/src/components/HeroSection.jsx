@@ -119,16 +119,17 @@ const HeroSection = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
-                    className='flex w-full md:w-[60%] lg:w-[50%] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 pl-6 rounded-full items-center gap-4 mx-auto bg-white mt-6 p-2 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(106,13,173,0.15)] hover:border-purple-200 group relative overflow-hidden'
+                    className='flex flex-col sm:flex-row w-full md:w-[60%] lg:w-[50%] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 px-4 sm:pl-6 sm:pr-2 py-2 rounded-3xl sm:rounded-full items-center gap-4 mx-auto bg-white mt-6 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(106,13,173,0.15)] hover:border-purple-200 group relative overflow-hidden'
                 >
                     <input
                         type="text"
                         placeholder='Search for "Developer", "Designer", etc.'
                         onChange={(e) => setQuery(e.target.value)}
-                        className='outline-none border-none w-full text-gray-800 text-lg font-medium bg-transparent placeholder-gray-400 z-10'
+                        className='outline-none border-none w-full text-center sm:text-left text-gray-800 text-base sm:text-lg font-medium bg-transparent placeholder-gray-400 z-10 py-2 sm:py-0'
                     />
-                    <Button onClick={searchJobHandler} className="rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-12 w-12 md:w-auto md:px-8 shadow-lg hover:shadow-xl hover:scale-105 transition-all z-10">
+                    <Button onClick={searchJobHandler} className="w-full sm:w-auto rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-12 md:px-8 shadow-lg hover:shadow-xl hover:scale-105 transition-all z-10 flex items-center justify-center gap-2">
                         <Search className='h-5 w-5 font-bold' />
+                        <span className='sm:hidden'>Search</span>
                     </Button>
                 </motion.div>
 

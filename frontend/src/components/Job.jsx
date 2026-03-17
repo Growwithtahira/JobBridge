@@ -16,7 +16,7 @@ const Job = ({ job }) => {
     }
 
     return (
-        <div className='p-6 rounded-2xl shadow-sm bg-white border border-gray-100 cursor-pointer 
+        <div className='p-4 sm:p-6 rounded-2xl shadow-sm bg-white border border-gray-100 cursor-pointer 
                     hover:shadow-[0_10px_40px_rgba(106,13,173,0.1)] hover:border-purple-200 hover:-translate-y-1
                     transition-all duration-300 ease-in-out transform flex flex-col justify-between h-full group'>
 
@@ -31,43 +31,43 @@ const Job = ({ job }) => {
             </div>
 
             {/* Company Info */}
-            <div className='flex items-center gap-4 mb-4'>
-                <div className="p-2 rounded-xl bg-white border border-gray-100 shadow-sm">
-                    <Avatar className="h-10 w-10">
+            <div className='flex flex-wrap items-center gap-3 sm:gap-4 mb-3 sm:mb-4'>
+                <div className="p-1.5 sm:p-2 shrink-0 rounded-xl bg-white border border-gray-100 shadow-sm">
+                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                         <AvatarImage src={job?.company?.logo} />
                     </Avatar>
                 </div>
                 <div>
-                    <h1 className='font-bold text-lg text-gray-900 leading-none mb-1 group-hover:text-primary transition-colors'>{job?.company?.name}</h1>
-                    <p className='text-xs text-gray-500 font-medium'>📍 {job?.location || "India"}</p>
+                    <h1 className='font-bold text-base sm:text-lg text-gray-900 leading-tight mb-0.5 group-hover:text-primary transition-colors'>{job?.company?.name}</h1>
+                    <p className='text-[10px] sm:text-xs text-gray-500 font-medium'>📍 {job?.location || "India"}</p>
                 </div>
             </div>
 
             {/* Details */}
-            <div className='mb-4'>
-                <h1 className='font-bold text-xl text-gray-900 mb-2 truncate'>
+            <div className='mb-3 sm:mb-4'>
+                <h1 className='font-bold text-lg sm:text-xl text-gray-900 mb-1 sm:mb-2 truncate'>
                     {job?.title}
                 </h1>
-                <p className='text-sm text-gray-500 line-clamp-2 leading-relaxed'>
+                <p className='text-xs sm:text-sm text-gray-500 line-clamp-1 sm:line-clamp-2 leading-relaxed'>
                     {job?.description}
                 </p>
             </div>
 
             {/* Badges (Premium Gen Z) */}
-            <div className='flex items-center gap-2 flex-wrap mb-6'>
-                <Badge className={'badge-premium'} variant="ghost">{job?.position} Positions</Badge>
-                <Badge className={'badge-premium'} variant="ghost">{job?.jobType}</Badge>
-                <Badge className={'badge-premium'} variant="ghost">₹{job?.salary}LPA</Badge>
+            <div className='flex items-center gap-1.5 sm:gap-2 flex-wrap mb-4 sm:mb-6'>
+                <Badge className={'badge-premium text-[10px] sm:text-xs px-2 sm:px-4 py-1 sm:py-1.5'} variant="ghost">{job?.position} Positions</Badge>
+                <Badge className={'badge-premium text-[10px] sm:text-xs px-2 sm:px-4 py-1 sm:py-1.5'} variant="ghost">{job?.jobType}</Badge>
+                <Badge className={'badge-premium text-[10px] sm:text-xs px-2 sm:px-4 py-1 sm:py-1.5'} variant="ghost">₹{job?.salary}LPA</Badge>
             </div>
 
             {/* Buttons */}
-            <div className='flex items-center gap-4 mt-auto'>
+            <div className='flex flex-row items-center gap-2 sm:gap-4 mt-auto pt-3 sm:pt-4 border-t border-gray-50'>
                 <Button onClick={() => navigate(`/description/${job?._id}`)} variant="outline"
-                    className="flex-1 border-gray-200 bg-white text-gray-700 hover:border-primary hover:text-primary hover:bg-purple-50 transition-all font-semibold rounded-lg">
+                    className="flex-1 h-8 sm:h-10 text-xs sm:text-sm border-gray-200 bg-white text-gray-700 hover:border-primary hover:text-primary hover:bg-purple-50 transition-all font-semibold rounded-lg px-2 sm:px-4">
                     Details
                 </Button>
-                <Button className="bg-primary hover:bg-violet-700 text-white font-bold shadow-md hover:shadow-lg rounded-lg transition-all">
-                    Save For Later
+                <Button className="flex-1 h-8 sm:h-10 text-xs sm:text-sm bg-primary hover:bg-violet-700 text-white font-bold shadow-md hover:shadow-lg rounded-lg transition-all px-2 sm:px-4">
+                    Save Later
                 </Button>
             </div>
         </div>

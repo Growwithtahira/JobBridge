@@ -133,7 +133,7 @@ const Login = () => {
                         onChange={changeEventHandler}
                         onFocus={() => setActiveField('email')}
                         onBlur={() => setActiveField(null)}
-                        placeholder="name@example.com"
+                        placeholder="Email ID"
                         className="h-12 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                     />
                 </div>
@@ -153,7 +153,7 @@ const Login = () => {
                             onChange={changeEventHandler}
                             onFocus={() => setActiveField('password')}
                             onBlur={() => setActiveField(null)}
-                            placeholder="••••••••"
+                            placeholder="Password (min 6 characters)"
                             className="h-12 bg-white border-gray-200 focus:border-primary focus:ring-primary rounded-xl"
                         />
                         <button

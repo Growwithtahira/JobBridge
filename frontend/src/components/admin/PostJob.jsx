@@ -21,7 +21,7 @@ const PostJob = () => {
         salary: "",
         location: "",
         jobType: "",
-        experience: "",
+        experienceLevel: "",
         position: 0,
         companyId: ""
     });
@@ -63,7 +63,7 @@ const PostJob = () => {
         <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50 to-purple-50'>
             <Navbar />
             <div className='flex items-center justify-center w-full py-10 px-4'>
-                <form onSubmit={submitHandler} className='p-8 max-w-4xl w-full bg-white/70 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl text-gray-800'>
+                <form onSubmit={submitHandler} className='p-6 sm:p-8 max-w-4xl w-full bg-white/70 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl text-gray-800'>
 
                     <div className='mb-6 text-center md:text-left'>
                         <h2 className='text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600'>Post a New Job</h2>
@@ -151,14 +151,14 @@ const PostJob = () => {
 
                         {/* 7. Experience */}
                         <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Experience Level</Label>
+                            <Label className="text-gray-700 font-semibold">Experience Level (in years)</Label>
                             <Input
-                                type="text"
-                                name="experience"
-                                value={input.experience}
+                                type="number"
+                                name="experienceLevel"
+                                value={input.experienceLevel}
                                 onChange={changeEventHandler}
                                 className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
-                                placeholder="e.g. 2-5 Years"
+                                placeholder="e.g. 3"
                             />
                         </div>
 

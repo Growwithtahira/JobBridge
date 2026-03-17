@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { Otp } from "../models/otp.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
@@ -15,11 +16,6 @@ export const register = async (req, res) => {
                 success: false
             });
         };
-        const file = req.file;
-        const fileUri = getDataUri(file);
-
-        // 1. REGISTER: Yahan PHOTO upload hoti hai, isliye "raw" mat lagana.
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
         const user = await User.findOne({ email });
         if (user) {
@@ -28,25 +24,132 @@ export const register = async (req, res) => {
                 success: false,
             })
         }
+
+        const file = req.file;
+        let profilePhoto = "";
+        if (file) {
+            const fileUri = getDataUri(file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            profilePhoto = cloudResponse.secure_url;
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await User.create({
-            fullname,
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Delete any existing OTPs for this email to prevent spam/confusion
+        await Otp.deleteMany({ email });
+
+        await Otp.create({
             email,
-            phoneNumber,
-            password: hashedPassword,
-            role,
-            profile: {
-                profilePhoto: cloudResponse.secure_url,
+            otp,
+            userData: {
+                fullname,
+                email,
+                phoneNumber,
+                password: hashedPassword,
+                role,
+                profile: {
+                    profilePhoto: profilePhoto,
+                }
             }
         });
 
-        return res.status(201).json({
-            message: "Account created successfully.",
+        // Send OTP via Email
+        const emailSent = await sendEmail({
+            email,
+            subject: "JobBridge Registration OTP",
+            message: `Your OTP for JobBridge registration is: ${otp}. It is valid for 5 minutes.`
+        });
+
+        if (!emailSent) {
+            // Delete the OTP we just created if email fails
+            await Otp.deleteOne({ email, otp });
+            return res.status(500).json({
+                message: "Failed to send OTP email. Please try again.",
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            message: "OTP sent successfully. Please check your email.",
             success: true
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+}
+
+export const verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({
+                message: "Email and OTP are required.",
+                success: false
+            });
+        }
+
+        const otpRecord = await Otp.findOne({ email, otp });
+
+        if (!otpRecord) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP.",
+                success: false
+            });
+        }
+
+        // OTP valid, create user
+        const userData = otpRecord.userData;
+
+        // Double check if user exists (in case they verified twice quickly)
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            await Otp.deleteOne({ _id: otpRecord._id });
+            return res.status(400).json({
+                message: "User already registered.",
+                success: false
+            });
+        }
+
+        const newUser = await User.create(userData);
+
+        // Delete OTP after successful registration
+        await Otp.deleteOne({ _id: otpRecord._id });
+
+        // Generate token and login automatically
+        const tokenData = {
+            userId: newUser._id
+        }
+        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
+
+        const userResponse = {
+            _id: newUser._id,
+            fullname: newUser.fullname,
+            email: newUser.email,
+            phoneNumber: newUser.phoneNumber,
+            role: newUser.role,
+            profile: newUser.profile
+        }
+
+        return res.status(201).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+            message: "Account created successfully.",
+            user: userResponse,
+            success: true
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal server error.",
+            success: false
+        });
     }
 }
 
@@ -116,18 +219,32 @@ export const logout = async (req, res) => {
         console.log(error);
     }
 }
+
 export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
-        const file = req.file;
-        let cloudResponse;
 
-        // Sirf tabhi upload karein jab file exist karti ho
-        if (file) {
-            const fileUri = getDataUri(file);
-            cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+        // MultiUpload ke baad req.files se data nikalna
+        const resumeFile = req.files && req.files['file'] ? req.files['file'][0] : null;
+        const dpFile = req.files && req.files['profilePhoto'] ? req.files['profilePhoto'][0] : null;
+
+        let cloudResponseForResume;
+        let cloudResponseForDP;
+
+        // 1. Agar Resume upload hua hai
+        if (resumeFile) {
+            const fileUri = getDataUri(resumeFile);
+            cloudResponseForResume = await cloudinary.uploader.upload(fileUri.content, {
                 resource_type: "raw",
                 folder: "jobbridge_resumes"
+            });
+        }
+
+        // 2. Agar Profile Photo (DP) upload hui hai
+        if (dpFile) {
+            const fileUri = getDataUri(dpFile);
+            cloudResponseForDP = await cloudinary.uploader.upload(fileUri.content, {
+                folder: "jobbridge_dps"
             });
         }
 
@@ -146,17 +263,21 @@ export const updateProfile = async (req, res) => {
             });
         }
 
-        // Updating data
+        // Updating Text Data
         if (fullname) user.fullname = fullname;
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
         if (bio) user.profile.bio = bio;
         if (skills) user.profile.skills = skillsArray;
 
-        // Resume updates only if file was uploaded
-        if (cloudResponse) {
-            user.profile.resume = cloudResponse.secure_url;
-            user.profile.resumeOriginalName = file.originalname;
+        // Updating Files in Database
+        if (cloudResponseForResume) {
+            user.profile.resume = cloudResponseForResume.secure_url;
+            user.profile.resumeOriginalName = resumeFile.originalname;
+        }
+
+        if (cloudResponseForDP) {
+            user.profile.profilePhoto = cloudResponseForDP.secure_url; // DP save ho rahi hai
         }
 
         await user.save();
@@ -176,7 +297,7 @@ export const updateProfile = async (req, res) => {
             success: true
         });
     } catch (error) {
-        console.log(error);
+        console.log("Update Profile Error:", error);
         return res.status(500).json({
             message: "Internal server error",
             success: false

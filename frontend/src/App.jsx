@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom' // 👈 Navigate add kiya
 import Navbar from './components/shared/Navbar'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
@@ -16,9 +16,11 @@ import PostJob from './components/admin/PostJob'
 import Applicants from './components/admin/Applicants'
 import ProtectedRoute from './components/admin/ProtectedRoute'
 
-
 import InteractiveBackground from './components/shared/InteractiveBackground'
 import PageTransition from './components/shared/PageTransition'
+
+// 👈 Apna NotFound page yahan import karein (agar pages folder me banaya hai toh path check kar lein)
+import NotFound from './components/NotFound'
 
 const appRouter = createBrowserRouter([
   {
@@ -79,9 +81,22 @@ const appRouter = createBrowserRouter([
     element: <ProtectedRoute><PageTransition><Applicants /></PageTransition></ProtectedRoute>
   },
 
-])
-function App() {
+  // 👇 NAYE ROUTES YAHAN ADD KIYE GAYE HAIN 👇
 
+  // 1. Agar koi direct /admin likhega, toh wo automatically /admin/companies par chala jayega
+  {
+    path: "/admin",
+    element: <Navigate to="/admin/companies" replace />
+  },
+
+  // 2. Catch-all route (404 Page). Agar upar me se koi URL match nahi hua, toh ye page dikhega
+  {
+    path: "*",
+    element: <PageTransition><NotFound /></PageTransition>
+  }
+])
+
+function App() {
   return (
     <div className='relative'>
       <InteractiveBackground />

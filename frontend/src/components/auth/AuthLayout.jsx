@@ -17,13 +17,13 @@ const AuthLayout = ({ children, activeField }) => {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-indigo-50 to-white relative">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 bg-gradient-to-br from-indigo-50 to-white relative">
                 {/* Mobile Skyline hint (optional background) */}
                 <div className="absolute inset-0 lg:hidden opacity-10 pointer-events-none">
                     <Skyline activeField={activeField} />
                 </div>
 
-                <div className="w-full max-w-md z-10">
+                <div className="w-[90%] sm:w-full max-w-md z-10">
                     {children}
                 </div>
             </div>

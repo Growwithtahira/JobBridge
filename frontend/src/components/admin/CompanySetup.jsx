@@ -78,7 +78,7 @@ const CompanySetup = () => {
         <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50 to-purple-50'>
             <Navbar />
             <div className='max-w-xl mx-auto py-10 px-4'>
-                <form onSubmit={submitHandler} className='bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden p-8'>
+                <form onSubmit={submitHandler} className='bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8'>
                     <div className='flex items-center gap-5 mb-8'>
                         <Button onClick={() => navigate("/admin/companies")} variant="outline" className="flex items-center gap-2 text-gray-600 border-gray-300 hover:bg-gray-100 rounded-xl">
                             <ArrowLeft />

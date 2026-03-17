@@ -10,7 +10,7 @@ import { USER_API_END_POINT } from '@/utils/constant'
 import { setUser } from '@/redux/authSlice'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-
+import logo from '@/assets/Logo.png';
 const Navbar = () => {
     const { user } = useSelector(store => store.auth);
     const dispatch = useDispatch();
@@ -36,9 +36,17 @@ const Navbar = () => {
             <div className='flex items-center justify-between mx-auto max-w-7xl h-full w-full px-4 sm:px-6 lg:px-8'>
 
                 {/* --- LOGO SECTION --- */}
-                <div className='flex items-center gap-3 cursor-pointer group' onClick={() => navigate("/")}>
-                    <div className='w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-extrabold text-2xl shadow-lg ring-2 ring-purple-100 group-hover:scale-110 transition-transform duration-300'>J</div>
-                    <h1 className='text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-1'>
+
+                <div className='flex items-center gap-3 cursor-pointer group shrink-0' onClick={() => navigate("/")}>
+
+                    {/* 2. src me quotes "" hata kar curly braces {} me logo variable pass karein */}
+                    <img
+                        src={logo}
+                        alt="JobBridge Logo"
+                        className='w-10 h-10 sm:w-12 sm:h-12 object-contain group-hover:scale-110 transition-transform duration-300'
+                    />
+
+                    <h1 className='text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-1'>
                         Job<span className='text-primary'>Bridge</span>.
                     </h1>
                 </div>
@@ -77,7 +85,7 @@ const Navbar = () => {
                     {/* --- LOGIN / SIGNUP / PROFILE BUTTONS --- */}
                     {
                         !user ? (
-                            <div className='flex items-center gap-4'>
+                            <div className='hidden md:flex items-center gap-4'>
                                 <Link to="/login">
                                     <Button variant="ghost" className="text-gray-600 hover:text-primary hover:bg-purple-50 rounded-full px-6 transition-all font-semibold">Login</Button>
                                 </Link>
