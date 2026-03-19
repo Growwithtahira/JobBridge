@@ -6,15 +6,31 @@ import { setSearchedQuery } from '@/redux/jobSlice';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThreeBackground from './ThreeBackground';
+import { toast } from 'sonner'; // Ensure 'sonner' or 'react-hot-toast' is installed
 
 const HeroSection = () => {
     const [query, setQuery] = useState("");
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    // Updated Handler with Pop-up logic
     const searchJobHandler = () => {
+        // Agar user ne kuch nahi likha ya sirf spaces diye hain
+        if (!query.trim()) {
+            return toast.error("Please enter a job title or keyword!");
+            // Agar toast nahi chal raha toh use: alert("Please enter a keyword")
+        }
+
+        // Agar query valid hai tabhi dispatch aur navigate hoga
         dispatch(setSearchedQuery(query));
         navigate("/browse");
+    }
+
+    // Enter Key Press Handler
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            searchJobHandler();
+        }
     }
 
     // Typewriter Variants
@@ -39,10 +55,9 @@ const HeroSection = () => {
     return (
         <div className='relative text-center py-20 px-4 min-h-[80vh] flex flex-col justify-center overflow-hidden bg-gradient-to-br from-white via-violet-50 to-white'>
 
-            {/* 3D Background - Absolute Positioned */}
             <ThreeBackground />
 
-            {/* Floating Elements (Background decorations) */}
+            {/* Floating Elements */}
             <motion.div
                 animate={{ y: [0, -20, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -61,7 +76,7 @@ const HeroSection = () => {
 
             <div className='flex flex-col gap-8 my-5 max-w-5xl mx-auto relative z-10'>
 
-                {/* Badge: Premium Pill */}
+                {/* Badge */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -73,7 +88,7 @@ const HeroSection = () => {
                     </span>
                 </motion.div>
 
-                {/* Heading: Typewriter Effect */}
+                {/* Heading */}
                 <motion.h1
                     className='text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#2D2D2D] leading-tight tracking-tight'
                     variants={sentenceVariant}
@@ -86,7 +101,6 @@ const HeroSection = () => {
                             {char}
                         </motion.span>
                     ))}
-                    {/* Blinking Cursor */}
                     <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 1, 0] }}
@@ -104,7 +118,7 @@ const HeroSection = () => {
                     </motion.span>
                 </motion.h1>
 
-                {/* Subtitle: Clean Gray */}
+                {/* Subtitle */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -114,7 +128,7 @@ const HeroSection = () => {
                     Bridging the gap between Campus and Corporate. Connect with top companies in your city and kickstart your career.
                 </motion.p>
 
-                {/* Search Bar: Ultra Premium Glass */}
+                {/* Search Bar - Fixed Logic */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -124,16 +138,21 @@ const HeroSection = () => {
                     <input
                         type="text"
                         placeholder='Search for "Developer", "Designer", etc.'
+                        value={query} // Linked state
                         onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={handleKeyDown} // Trigger on Enter
                         className='outline-none border-none w-full text-center sm:text-left text-gray-800 text-base sm:text-lg font-medium bg-transparent placeholder-gray-400 z-10 py-2 sm:py-0'
                     />
-                    <Button onClick={searchJobHandler} className="w-full sm:w-auto rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-12 md:px-8 shadow-lg hover:shadow-xl hover:scale-105 transition-all z-10 flex items-center justify-center gap-2">
+                    <Button
+                        onClick={searchJobHandler}
+                        className="w-full sm:w-auto rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-12 md:px-8 shadow-lg hover:shadow-xl hover:scale-105 transition-all z-10 flex items-center justify-center gap-2"
+                    >
                         <Search className='h-5 w-5 font-bold' />
                         <span className='sm:hidden'>Search</span>
                     </Button>
                 </motion.div>
 
-                {/* Trusted By Text */}
+                {/* Trusted By */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -146,4 +165,4 @@ const HeroSection = () => {
     )
 }
 
-export default HeroSection
+export default HeroSection;

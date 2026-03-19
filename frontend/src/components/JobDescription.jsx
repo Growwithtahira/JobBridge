@@ -92,7 +92,7 @@ const JobDescription = () => {
 
                             {/* 3. Salary: Theme Yellow Text on Dark Box */}
                             <Badge className={'text-white bg-purple-800 border border-white-700 font-bold cursor-default whitespace-normal'} variant="ghost">
-                                {singleJob?.salary}
+                                {singleJob?.salary} LPA
                             </Badge>
                         </div>
                     </div>
@@ -127,11 +127,11 @@ const JobDescription = () => {
                         </div>
                         <div className='grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4'>
                             <span className='font-bold text-gray-900'>Experience:</span>
-                            <span className='sm:col-span-2 font-medium text-gray-700 bg-purple-50/50 p-3 rounded-xl border border-purple-50'>{singleJob?.experienceLevel}</span>
+                            <span className='sm:col-span-2 font-medium text-gray-700 bg-purple-50/50 p-3 rounded-xl border border-purple-50'>{singleJob?.experienceLevel} Years</span>
                         </div>
                         <div className='grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4'>
                             <span className='font-bold text-gray-900'>Salary:</span>
-                            <span className='sm:col-span-2 font-medium text-gray-700 bg-purple-50/50 p-3 rounded-xl border border-purple-50'>{singleJob?.salary}</span>
+                            <span className='sm:col-span-2 font-medium text-gray-700 bg-purple-50/50 p-3 rounded-xl border border-purple-50'>{singleJob?.salary} LPA</span>
                         </div>
                         <div className='grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4'>
                             <span className='font-bold text-gray-900'>Total Applicants:</span>
