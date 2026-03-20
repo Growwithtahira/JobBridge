@@ -18,4 +18,15 @@ router.route("/forgot-password").post(forgotPassword);
 router.route("/reset-password").post(resetPassword);
 router.post("/google", googleLogin);
 
+// user.route.js mein sirf YEH EK LINE add karo:
+// Existing routes ke saath:
+
+import { verifyResetOtp } from "../controllers/user.controller.js";
+
+router.post("/verify-reset-otp", verifyResetOtp); // ← ADD KARO
+
+// Baaki sab routes same rahenge:
+// router.post("/forgot-password", forgotPassword);   // already hai
+// router.post("/reset-password",  resetPassword);    // already hai
+
 export default router;

@@ -1,14 +1,14 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
-import { getAdminJobs, getAllJobs, getJobById, postJob } from "../controllers/job.controller.js";
+import { getAdminJobs, getAllJobs, getJobById, postJob, deleteJob } from "../controllers/job.controller.js";
 
-const router = express.Router();
+const router = express.Router();  // ← pehle define karo
 
 router.route("/post").post(isAuthenticated, postJob);
 router.route("/get").get(getAllJobs);
 router.route("/getadminjobs").get(isAuthenticated, getAdminJobs);
 router.route("/get/:id").get(getJobById);
-// isAuthenticated hata diya taaki bina login wale bhi data dekh sakein
+router.delete('/delete/:id', isAuthenticated, deleteJob);  // ← sirf ek baar
 
 export default router;
 

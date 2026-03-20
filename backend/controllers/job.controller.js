@@ -92,3 +92,24 @@ export const getAdminJobs = async (req, res) => {
         console.log(error);
     }
 }
+export const deleteJob = async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id)
+
+        if (!job) {
+            return res.status(404).json({ success: false, message: "Job not found" })
+        }
+
+        // Sirf creator delete kar sake
+        if (job.created_by.toString() !== req.id) {
+            return res.status(403).json({ success: false, message: "Not authorized" })
+        }
+
+        await Job.findByIdAndDelete(req.params.id)
+
+        return res.status(200).json({ success: true, message: "Job deleted successfully" })
+    } catch (error) {
+        console.log("Delete Job Error:", error)
+        return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}

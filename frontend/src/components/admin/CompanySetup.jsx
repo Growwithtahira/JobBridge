@@ -1,164 +1,229 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Navbar from '../shared/Navbar'
 import { Button } from '../ui/button'
-import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
+import { useSelector } from 'react-redux'
 import axios from 'axios'
 import { COMPANY_API_END_POINT } from '@/utils/constant'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useSelector } from 'react-redux'
 import useGetCompanyById from '@/hooks/useGetCompanyById'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+    ArrowLeft, Loader2, Building2, Globe, MapPin,
+    FileText, Camera, CheckCircle2, AlertCircle, Upload
+} from 'lucide-react'
 
+// ── Field component ────────────────────────────────────────────────────────────
+const Field = ({ label, icon: Icon, error, hint, required, children }) => (
+    <div className="space-y-1.5">
+        <Label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+            {Icon && <Icon size={11} className="text-primary" />}
+            {label}
+            {required && <span className="text-red-400 ml-0.5">*</span>}
+        </Label>
+        {children}
+        <AnimatePresence>
+            {error && (
+                <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="flex items-center gap-1 text-xs text-red-500 font-medium">
+                    <AlertCircle size={11} /> {error}
+                </motion.p>
+            )}
+        </AnimatePresence>
+        {hint && !error && <p className="text-[10px] text-gray-400">{hint}</p>}
+    </div>
+)
+
+// ── Main ───────────────────────────────────────────────────────────────────────
 const CompanySetup = () => {
-    const params = useParams();
-    useGetCompanyById(params.id);
-    const [input, setInput] = useState({
-        name: "",
-        description: "",
-        website: "",
-        location: "",
-        file: null
-    });
-    const { singleCompany } = useSelector(store => store.company);
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+    const params = useParams()
+    useGetCompanyById(params.id)
+    const { singleCompany } = useSelector(store => store.company)
+    const navigate = useNavigate()
+    const fileRef = useRef(null)
 
-    const changeEventHandler = (e) => {
-        setInput({ ...input, [e.target.name]: e.target.value });
-    }
-
-    const changeFileHandler = (e) => {
-        const file = e.target.files?.[0];
-        setInput({ ...input, file });
-    }
-
-    const submitHandler = async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append("name", input.name);
-        formData.append("description", input.description);
-        formData.append("website", input.website);
-        formData.append("location", input.location);
-        if (input.file) {
-            formData.append("file", input.file);
-        }
-        try {
-            setLoading(true);
-            const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
-                withCredentials: true
-            });
-            if (res.data.success) {
-                toast.success(res.data.message);
-                navigate("/admin/companies");
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error(error.response.data.message);
-        } finally {
-            setLoading(false);
-        }
-    }
+    const [input, setInput] = useState({ name: '', description: '', website: '', location: '', file: null })
+    const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(false)
+    const [preview, setPreview] = useState(null)
+    const [saved, setSaved] = useState(false)
 
     useEffect(() => {
         setInput({
-            name: singleCompany.name || "",
-            description: singleCompany.description || "",
-            website: singleCompany.website || "",
-            location: singleCompany.location || "",
-            file: singleCompany.file || null
+            name: singleCompany.name || '',
+            description: singleCompany.description || '',
+            website: singleCompany.website || '',
+            location: singleCompany.location || '',
+            file: null
         })
-    }, [singleCompany]);
+        if (singleCompany.logo) setPreview(singleCompany.logo)
+    }, [singleCompany])
+
+    const onChange = (e) => {
+        setInput(p => ({ ...p, [e.target.name]: e.target.value }))
+        if (errors[e.target.name]) setErrors(p => ({ ...p, [e.target.name]: '' }))
+    }
+
+    const onFile = (e) => {
+        const f = e.target.files?.[0]
+        if (!f) return
+        if (f.size > 2 * 1024 * 1024) { toast.error('Logo must be under 2MB'); return }
+        setInput(p => ({ ...p, file: f }))
+        const reader = new FileReader()
+        reader.onloadend = () => setPreview(reader.result)
+        reader.readAsDataURL(f)
+    }
+
+    // ✅ All fields mandatory
+
+    const validate = () => {
+        const e = {}
+        if (!input.name.trim()) e.name = 'Company name is required'
+        if (!input.description.trim()) e.description = 'Description is required'
+        if (!input.location.trim()) e.location = 'Location is required'
+        if (input.website.trim() && !/^https?:\/\//.test(input.website))
+            e.website = 'URL must start with http:// or https://'
+        setErrors(e)
+        return Object.keys(e).length === 0
+    }
+
+    const onSubmit = async (e) => {
+        e.preventDefault()
+        if (!validate()) return
+        const fd = new FormData()
+        Object.entries(input).forEach(([k, v]) => { if (v && k !== 'file') fd.append(k, v) })
+        if (input.file) fd.append('file', input.file)
+        try {
+            setLoading(true)
+            const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, fd, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                withCredentials: true
+            })
+            if (res.data.success) {
+                setSaved(true)
+                toast.success(res.data.message)
+                setTimeout(() => navigate('/admin/companies'), 1000)
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Update failed')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
-        <div className='min-h-screen bg-gradient-to-br from-white via-indigo-50 to-purple-50'>
+        <div className="min-h-screen bg-gray-50/50">
             <Navbar />
-            <div className='max-w-xl mx-auto py-10 px-4'>
-                <form onSubmit={submitHandler} className='bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8'>
-                    <div className='flex items-center gap-5 mb-8'>
-                        <Button onClick={() => navigate("/admin/companies")} variant="outline" className="flex items-center gap-2 text-gray-600 border-gray-300 hover:bg-gray-100 rounded-xl">
-                            <ArrowLeft />
-                            <span>Back</span>
+            <div className="max-w-2xl mx-auto px-4 py-10">
+
+                {/* Back */}
+                <motion.button
+                    initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}
+                    type="button" onClick={() => navigate('/admin/companies')}
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-primary transition-colors mb-6 group"
+                >
+                    <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
+                    Back to Companies
+                </motion.button>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                >
+                    {/* Header */}
+                    <div className="px-6 pt-6 pb-5 border-b border-gray-50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center">
+                                <Building2 size={18} className="text-primary" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Company Setup</h1>
+                                <p className="text-xs text-gray-400 font-medium mt-0.5">
+                                    All fields marked <span className="text-red-400">*</span> are required
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={onSubmit} className="p-6 space-y-6">
+
+                        {/* Logo upload */}
+                        <div className="flex items-center gap-5 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                            <div className="relative group flex-shrink-0">
+                                <div
+                                    onClick={() => fileRef.current?.click()}
+                                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 group-hover:border-primary bg-white flex items-center justify-center cursor-pointer transition-all overflow-hidden"
+                                >
+                                    {preview
+                                        ? <img src={preview} alt="logo" className="w-full h-full object-cover rounded-2xl" />
+                                        : <Camera size={24} className="text-gray-300 group-hover:text-primary transition-colors" />
+                                    }
+                                </div>
+                                {preview && (
+                                    <div
+                                        className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-primary border-2 border-white flex items-center justify-center cursor-pointer"
+                                        onClick={() => fileRef.current?.click()}
+                                    >
+                                        <Camera size={10} className="text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-700 mb-0.5">Company Logo</p>
+                                <p className="text-xs text-gray-400">PNG, JPG up to 2MB. Recommended 200×200px.</p>
+                                <button type="button" onClick={() => fileRef.current?.click()}
+                                    className="mt-2 flex items-center gap-1.5 text-xs font-bold text-primary hover:text-violet-700 transition-colors">
+                                    <Upload size={11} /> {preview ? 'Change Logo' : 'Upload Logo'}
+                                </button>
+                            </div>
+                            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+                        </div>
+
+                        {/* Fields grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <Field label="Company Name" icon={Building2} error={errors.name} required>
+                                <Input name="name" value={input.name} onChange={onChange}
+                                    placeholder="e.g. Acme Corp"
+                                    className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.name ? 'border-red-300' : ''}`} />
+                            </Field>
+
+                            <Field label="Location" icon={MapPin} error={errors.location} required>
+                                <Input name="location" value={input.location} onChange={onChange}
+                                    placeholder="e.g. Bareilly, UP"
+                                    className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.location ? 'border-red-300' : ''}`} />
+                            </Field>
+
+                            <Field label="Website" icon={Globe} error={errors.website} required hint="Include https://">
+                                <Input name="website" value={input.website} onChange={onChange}
+                                    placeholder="https://yourcompany.com"
+                                    className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.website ? 'border-red-300' : ''}`} />
+                            </Field>
+                        </div>
+
+                        <Field label="Description" icon={FileText} error={errors.description} required
+                            hint={!errors.description ? `${input.description.length}/300 characters` : undefined}>
+                            <textarea
+                                name="description" value={input.description}
+                                onChange={onChange} maxLength={300} rows={3}
+                                placeholder="Brief description of what your company does…"
+                                className={`w-full px-3 py-2.5 text-sm rounded-xl border focus:border-primary focus:ring-1 focus:ring-purple-400 outline-none resize-none text-gray-700 placeholder-gray-300 transition-colors
+                                    ${errors.description ? 'border-red-300' : 'border-gray-200'}`}
+                            />
+                        </Field>
+
+                        {/* Submit */}
+                        <Button type="submit" disabled={loading || saved}
+                            className="w-full h-12 font-bold bg-primary hover:bg-violet-700 text-white rounded-xl shadow-md shadow-purple-200 hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+                        >
+                            {loading ? <><Loader2 size={16} className="animate-spin" /> Updating…</>
+                                : saved ? <><CheckCircle2 size={16} /> Saved!</>
+                                    : 'Update Company'}
                         </Button>
-                        <h1 className='font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600'>Company Setup</h1>
-                    </div>
-
-                    <div className='space-y-4'>
-                        {/* 1. Company Name */}
-                        <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Company Name</Label>
-                            <Input
-                                type="text"
-                                name="name"
-                                value={input.name}
-                                onChange={changeEventHandler}
-                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
-                                placeholder="e.g. JobBridge"
-                            />
-                        </div>
-
-                        {/* 2. Description */}
-                        <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Description</Label>
-                            <Input
-                                type="text"
-                                name="description"
-                                value={input.description}
-                                onChange={changeEventHandler}
-                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
-                                placeholder="e.g. A platform for job seekers..."
-                            />
-                        </div>
-
-                        {/* 3. Website */}
-                        <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Website</Label>
-                            <Input
-                                type="text"
-                                name="website"
-                                value={input.website}
-                                onChange={changeEventHandler}
-                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
-                                placeholder="e.g. https://jobbridge.com"
-                            />
-                        </div>
-
-                        {/* 4. Location */}
-                        <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Location</Label>
-                            <Input
-                                type="text"
-                                name="location"
-                                value={input.location}
-                                onChange={changeEventHandler}
-                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl"
-                                placeholder="e.g. New Delhi, India"
-                            />
-                        </div>
-
-                        {/* 5. Logo */}
-                        <div className='space-y-2'>
-                            <Label className="text-gray-700 font-semibold">Logo</Label>
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={changeFileHandler}
-                                className="bg-white/50 border-gray-200 focus:border-violet-500 focus:ring-violet-500 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    {
-                        loading
-                            ? <Button className="w-full mt-8 h-12 bg-violet-600 text-white rounded-xl shadow-lg"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button>
-                            : <Button type="submit" className="w-full mt-8 h-12 font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">Update Company</Button>
-                    }
-                </form>
+                    </form>
+                </motion.div>
             </div>
         </div>
     )

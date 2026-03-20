@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: function () { return !this.googleId; } // Only required if not google login, but for simplicity let's make it false and handle in controller
+        required: function () { return !this.googleId; }
     },
     googleId: {
-        type: String, // Store Google UID
+        type: String,
         default: null
     },
     role: {
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
     profile: {
         bio: { type: String },
         skills: [{ type: String }],
-        resume: { type: String }, // URL to resume file
+        resume: { type: String },
         resumeOriginalName: { type: String },
         company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
         profilePhoto: {
@@ -38,7 +38,9 @@ const userSchema = new mongoose.Schema({
             default: ""
         }
     },
-    resetPasswordToken: String,
-    resetPasswordExpires: Date,
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
+    isResetVerified: { type: Boolean, default: false }, // ← SIRF YEH ADD KIYA
 }, { timestamps: true });
+
 export const User = mongoose.model('User', userSchema);

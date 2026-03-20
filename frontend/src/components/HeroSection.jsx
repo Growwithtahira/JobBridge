@@ -1,168 +1,355 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Button } from './ui/button'
-import { Search } from 'lucide-react'
-import { useDispatch } from 'react-redux';
-import { setSearchedQuery } from '@/redux/jobSlice';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import ThreeBackground from './ThreeBackground';
-import { toast } from 'sonner'; // Ensure 'sonner' or 'react-hot-toast' is installed
+import { Search, X, ArrowRight, MapPin, Briefcase, Zap } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { setSearchedQuery } from '@/redux/jobSlice'
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import ThreeBackground from './ThreeBackground'
+import { toast } from 'sonner'
 
+// ── Data ───────────────────────────────────────────────────────────────────────
+const SUGGESTIONS = [
+    "Web Developer", "Data Entry", "Graphic Designer", "Sales Executive",
+    "Teacher", "Accountant", "Delivery Boy", "Receptionist", "IT Support",
+    "Content Writer", "Social Media Manager", "Mechanic"
+]
+
+const QUICK_TAGS = [
+    { label: "Remote Jobs", icon: "🏠", query: "remote" },
+    { label: "Full-Time", icon: "💼", query: "full time" }, // ← space
+    { label: "Internship", icon: "🎓", query: "internship" },
+    { label: "Part-Time", icon: "⏰", query: "part time" }, // ← space
+    { label: "IT / Tech", icon: "💻", query: "developer" },
+    { label: "Work Local", icon: "📍", query: "bareilly" },
+]
+
+// Roles that cycle — shown inline as a small colored chip, not a giant heading
+const ROLES = ["Developer", "Designer", "Teacher", "Accountant", "Marketer", "Sales Exec"]
+
+// ── Floating card component ────────────────────────────────────────────────────
+const FloatCard = ({ children, className, delay = 0, dy = 16 }) => (
+    <motion.div
+        animate={{ y: [0, -dy, 0] }}
+        transition={{ duration: 4 + delay, repeat: Infinity, ease: "easeInOut", delay }}
+        className={`hidden md:flex items-center gap-3 p-3.5 bg-white/90 backdrop-blur-md border border-white shadow-xl rounded-2xl z-20 absolute ${className}`}
+    >
+        {children}
+    </motion.div>
+)
+
+// ── Main component ─────────────────────────────────────────────────────────────
 const HeroSection = () => {
-    const [query, setQuery] = useState("");
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const [query, setQuery] = useState("")
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [roleIndex, setRoleIndex] = useState(0)
+    const [focused, setFocused] = useState(false)
 
-    // Updated Handler with Pop-up logic
-    const searchJobHandler = () => {
-        // Agar user ne kuch nahi likha ya sirf spaces diye hain
-        if (!query.trim()) {
-            return toast.error("Please enter a job title or keyword!");
-            // Agar toast nahi chal raha toh use: alert("Please enter a keyword")
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const inputRef = useRef(null)
+    const wrapperRef = useRef(null)
+
+    // Rotate role every 2.2s
+    useEffect(() => {
+        const t = setInterval(() => setRoleIndex(i => (i + 1) % ROLES.length), 2200)
+        return () => clearInterval(t)
+    }, [])
+
+    // Close suggestions on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target))
+                setShowSuggestions(false)
         }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [])
 
-        // Agar query valid hai tabhi dispatch aur navigate hoga
-        dispatch(setSearchedQuery(query));
-        navigate("/browse");
+    const filteredSuggestions = query.trim()
+        ? SUGGESTIONS.filter(s => s.toLowerCase().includes(query.toLowerCase()))
+        : SUGGESTIONS.slice(0, 6)
+
+    const searchJobHandler = (overrideQuery) => {
+        const q = (overrideQuery ?? query).trim()
+        if (!q) {
+            toast.error("Please enter a job title or keyword!")
+            inputRef.current?.focus()
+            return
+        }
+        setShowSuggestions(false)
+        dispatch(setSearchedQuery(q))
+        navigate("/browse")
     }
 
-    // Enter Key Press Handler
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            searchJobHandler();
-        }
+        if (e.key === 'Enter') searchJobHandler()
+        if (e.key === 'Escape') setShowSuggestions(false)
     }
 
-    // Typewriter Variants
-    const letterVariant = {
-        hidden: { opacity: 0, y: 50 },
-        visible: { opacity: 1, y: 0 }
-    };
-
-    const sentenceVariant = {
-        hidden: { opacity: 1 },
-        visible: {
-            opacity: 1,
-            transition: {
-                delay: 0.5,
-                staggerChildren: 0.03
-            }
-        }
-    };
-
-    const titleText = "Find the Best Jobs";
+    const handleTagClick = (tagQuery) => {
+        setQuery(tagQuery)
+        dispatch(setSearchedQuery(tagQuery))
+        navigate("/browse")
+    }
 
     return (
-        <div className='relative text-center py-20 px-4 min-h-[80vh] flex flex-col justify-center overflow-hidden bg-gradient-to-br from-white via-violet-50 to-white'>
+        <div className='relative text-center py-16 px-4 min-h-[92vh] flex flex-col justify-center overflow-hidden bg-gradient-to-br from-white via-violet-50/60 to-white'>
 
             <ThreeBackground />
 
-            {/* Floating Elements */}
-            <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className='hidden md:block absolute top-20 left-10 p-4 glass rounded-2xl opacity-90 z-20'
-            >
-                <p className='text-sm font-bold text-gray-700'>✨ 1k+ Jobs Added Daily</p>
-            </motion.div>
+            {/* ── Floating stat cards ───────────────────────────────────────── */}
+            <FloatCard className="top-24 left-8" delay={0} dy={14}>
+                <div className='w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-base flex-shrink-0'>✨</div>
+                <div className='text-left'>
+                    <p className='text-[10px] text-gray-400 font-medium leading-none mb-0.5'>New listings</p>
+                    <p className='text-sm font-bold text-gray-800'>1,000+ Daily</p>
+                </div>
+            </FloatCard>
 
-            <motion.div
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className='hidden md:block absolute bottom-20 right-10 p-4 glass rounded-2xl opacity-90 z-20'
-            >
-                <p className='text-sm font-bold text-gray-700'>🚀 500+ Top Recruiters</p>
-            </motion.div>
+            <FloatCard className="bottom-28 right-8" delay={1.2} dy={18}>
+                <div className='w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center text-base flex-shrink-0'>🚀</div>
+                <div className='text-left'>
+                    <p className='text-[10px] text-gray-400 font-medium leading-none mb-0.5'>Top Recruiters</p>
+                    <p className='text-sm font-bold text-gray-800'>500+ Active</p>
+                </div>
+            </FloatCard>
 
-            <div className='flex flex-col gap-8 my-5 max-w-5xl mx-auto relative z-10'>
+            <FloatCard className="top-1/3 right-10" delay={2.5} dy={10}>
+                <div className='w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-base flex-shrink-0'>🎯</div>
+                <div className='text-left'>
+                    <p className='text-[10px] text-gray-400 font-medium leading-none mb-0.5'>Hire Rate</p>
+                    <p className='text-sm font-bold text-gray-800'>94% Match</p>
+                </div>
+            </FloatCard>
 
-                {/* Badge */}
+            {/* ── Content ──────────────────────────────────────────────────── */}
+            <div className='flex flex-col items-center gap-6 max-w-4xl mx-auto relative z-10 w-full'>
+
+                {/* ── 1. Badge ─────────────────────────────────────────────── */}
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: -12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className='flex justify-center'>
-                    <span className='px-6 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-purple-100 text-primary font-bold text-sm shadow-sm flex items-center gap-2 hover:scale-105 transition-transform cursor-default tracking-wide'>
-                        <span className='w-2 h-2 rounded-full bg-primary animate-pulse'></span>
-                        No. 1 Platform for Freshers
+                    transition={{ duration: 0.45 }}
+                >
+                    <span className='inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-purple-100 text-primary font-semibold text-xs shadow-sm tracking-wide'>
+                        <span className='w-1.5 h-1.5 rounded-full bg-primary animate-pulse' />
+                        No. 1 Job Platform for Freshers · Bareilly
                     </span>
                 </motion.div>
 
-                {/* Heading */}
-                <motion.h1
-                    className='text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#2D2D2D] leading-tight tracking-tight'
-                    variants={sentenceVariant}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                >
-                    {titleText.split("").map((char, index) => (
-                        <motion.span key={index} variants={letterVariant}>
-                            {char}
-                        </motion.span>
-                    ))}
-                    <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0, 1, 0] }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                        className="inline-block w-1.5 h-8 md:h-12 lg:h-16 bg-[#6A38C2] ml-1 align-middle mb-2 rounded-sm"
-                    />
-                    <br />
-                    <motion.span
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2, duration: 0.3 }}
-                        className='text-gradient drop-shadow-sm'
-                    >
-                        Near You & <span className='text-primary'>Work Local</span>
-                    </motion.span>
-                </motion.h1>
-
-                {/* Subtitle */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.3 }}
-                    className='text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed font-medium bg-white/30 backdrop-blur-sm p-4 rounded-xl'
-                >
-                    Bridging the gap between Campus and Corporate. Connect with top companies in your city and kickstart your career.
-                </motion.p>
-
-                {/* Search Bar - Fixed Logic */}
+                {/* ── 2. Main heading — ONE clean statement ────────────────── */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                    className='flex flex-col sm:flex-row w-full md:w-[60%] lg:w-[50%] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 px-4 sm:pl-6 sm:pr-2 py-2 rounded-3xl sm:rounded-full items-center gap-4 mx-auto bg-white mt-6 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(106,13,173,0.15)] hover:border-purple-200 group relative overflow-hidden'
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.55, delay: 0.1 }}
+                    className="space-y-2"
                 >
-                    <input
-                        type="text"
-                        placeholder='Search for "Developer", "Designer", etc.'
-                        value={query} // Linked state
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={handleKeyDown} // Trigger on Enter
-                        className='outline-none border-none w-full text-center sm:text-left text-gray-800 text-base sm:text-lg font-medium bg-transparent placeholder-gray-400 z-10 py-2 sm:py-0'
-                    />
-                    <Button
-                        onClick={searchJobHandler}
-                        className="w-full sm:w-auto rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-12 md:px-8 shadow-lg hover:shadow-xl hover:scale-105 transition-all z-10 flex items-center justify-center gap-2"
-                    >
-                        <Search className='h-5 w-5 font-bold' />
-                        <span className='sm:hidden'>Search</span>
-                    </Button>
+                    {/* Line 1 — small label */}
+                    <p className="text-sm font-semibold text-gray-400 tracking-widest uppercase">
+                        Find your next opportunity
+                    </p>
+
+                    {/* Line 2 — main statement, moderate size, left-balanced */}
+                    <h1 className='text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight'>
+                        The Best{' '}
+                        {/* ── Inline rotating role chip ── */}
+                        <span className="relative inline-block">
+                            <span className="relative z-10 px-4 py-1 rounded-2xl overflow-hidden inline-block"
+                                style={{ background: 'linear-gradient(135deg, #ede9fe, #ddd6fe)' }}>
+                                <AnimatePresence mode="wait">
+                                    <motion.span
+                                        key={roleIndex}
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        exit={{ y: -20, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                                        className="block text-primary font-extrabold"
+                                    >
+                                        {ROLES[roleIndex]}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </span>
+                        </span>
+                        {' '}Jobs
+                    </h1>
+
+                    {/* Line 3 — secondary, lighter weight */}
+                    <h2 className='text-2xl sm:text-3xl md:text-4xl font-bold text-gray-400 tracking-tight'>
+                        Near You &{' '}
+                        <span className='text-primary font-extrabold'>Work Local</span>
+                        <motion.span
+                            animate={{ opacity: [1, 0, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                            className="inline-block w-0.5 h-6 md:h-8 bg-primary ml-1 align-middle rounded-sm"
+                        />
+                    </h2>
                 </motion.div>
 
-                {/* Trusted By */}
+                {/* ── 3. Subtitle — short, one line ────────────────────────── */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.5 }}
-                    className='text-sm text-gray-400 mt-6 font-semibold tracking-wide'>
-                    Trusted by <span className='text-primary font-bold'>100+ Companies</span> in Bareilly
+                    transition={{ duration: 0.4, delay: 0.25 }}
+                    className='text-gray-400 text-sm md:text-base max-w-lg mx-auto leading-relaxed'
+                >
+                    Connecting Bareilly's freshers with top local companies.
+                    One click to apply, zero hassle.
                 </motion.p>
+
+                {/* ── 4. Search bar ─────────────────────────────────────────── */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.32 }}
+                    className='w-full max-w-xl mx-auto'
+                    ref={wrapperRef}
+                >
+                    <motion.div
+                        animate={focused
+                            ? { boxShadow: '0 8px 40px rgba(106,56,194,0.2)', borderColor: '#c4b5fd' }
+                            : { boxShadow: '0 4px 24px rgba(0,0,0,0.07)', borderColor: '#f3f4f6' }
+                        }
+                        transition={{ duration: 0.2 }}
+                        className='flex items-center w-full border bg-white rounded-full px-2 pl-5 py-2 relative'
+                    >
+                        <Search size={16} className='text-gray-300 flex-shrink-0 mr-2' />
+
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={query}
+                            onChange={e => { setQuery(e.target.value); setShowSuggestions(true) }}
+                            onFocus={() => { setFocused(true); setShowSuggestions(true) }}
+                            onBlur={() => setFocused(false)}
+                            onKeyDown={handleKeyDown}
+                            placeholder='Job title, skill or keyword…'
+                            className='flex-1 outline-none border-none text-sm text-gray-700 placeholder-gray-300 bg-transparent py-1.5'
+                        />
+
+                        <AnimatePresence>
+                            {query && (
+                                <motion.button
+                                    initial={{ opacity: 0, scale: 0.6 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.6 }}
+                                    onClick={() => setQuery('')}
+                                    className='p-1.5 mr-1 rounded-full hover:bg-gray-100 text-gray-300 transition-colors flex-shrink-0'
+                                >
+                                    <X size={13} />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+
+                        <Button
+                            onClick={() => searchJobHandler()}
+                            className="rounded-full bg-primary hover:bg-violet-700 text-white font-bold h-10 px-6 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 flex-shrink-0 text-sm"
+                        >
+                            Search <ArrowRight size={14} />
+                        </Button>
+
+                        {/* Suggestions dropdown */}
+                        <AnimatePresence>
+                            {showSuggestions && filteredSuggestions.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                    transition={{ duration: 0.15 }}
+                                    className='absolute left-0 right-0 top-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl shadow-purple-100/40 z-50 overflow-hidden'
+                                >
+                                    <p className='text-[9px] font-bold text-gray-400 uppercase tracking-widest px-5 pt-3 pb-1'>
+                                        {query ? 'Matching roles' : 'Popular searches'}
+                                    </p>
+                                    {filteredSuggestions.map((s, i) => (
+                                        <motion.button
+                                            key={s}
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.025 }}
+                                            onMouseDown={() => searchJobHandler(s)}
+                                            className='w-full flex items-center gap-3 px-5 py-2.5 hover:bg-purple-50 transition-colors text-left group'
+                                        >
+                                            <Search size={12} className='text-gray-200 group-hover:text-primary transition-colors flex-shrink-0' />
+                                            <span className='text-sm text-gray-600 group-hover:text-primary font-medium transition-colors'>{s}</span>
+                                        </motion.button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+
+                    {/* Quick tags */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4, delay: 0.5 }}
+                        className='flex flex-wrap justify-center gap-1.5 mt-3'
+                    >
+                        <span className='text-[11px] text-gray-300 font-medium self-center mr-1'>Trending:</span>
+                        {QUICK_TAGS.map((tag, i) => (
+                            <motion.button
+                                key={tag.query}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.5 + i * 0.05 }}
+                                whileHover={{ scale: 1.06 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleTagClick(tag.query)}
+                                className='flex items-center gap-1 px-3 py-1 bg-white/70 border border-gray-100 hover:border-purple-200 hover:bg-purple-50 text-gray-500 hover:text-primary text-[11px] font-semibold rounded-full transition-all duration-150'
+                            >
+                                <span className='text-[10px]'>{tag.icon}</span>
+                                {tag.label}
+                            </motion.button>
+                        ))}
+                    </motion.div>
+                </motion.div>
+
+                {/* ── 5. Social proof — minimal ─────────────────────────────── */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.55 }}
+                    className='flex flex-col sm:flex-row items-center gap-4 pt-2'
+                >
+                    {/* Avatar row */}
+                    <div className='flex items-center gap-2'>
+                        <div className='flex -space-x-2'>
+                            {['#6A38C2', '#8B5CF6', '#A78BFA', '#C4B5FD'].map((color, i) => (
+                                <div
+                                    key={i}
+                                    className='w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold'
+                                    style={{ background: color }}
+                                >
+                                    {['A', 'B', 'R', 'S'][i]}
+                                </div>
+                            ))}
+                        </div>
+                        <p className='text-xs text-gray-400 font-medium'>
+                            <span className='text-primary font-bold'>2,400+</span> students hired
+                        </p>
+                    </div>
+
+                    <span className='hidden sm:block w-px h-4 bg-gray-200' />
+
+                    {/* Stats row */}
+                    <div className='flex items-center gap-4'>
+                        {[
+                            { icon: <Briefcase size={12} />, text: "500+ Jobs" },
+                            { icon: <MapPin size={12} />, text: "Bareilly" },
+                            { icon: <Zap size={12} />, text: "Free Forever" },
+                        ].map((s, i) => (
+                            <div key={i} className='flex items-center gap-1 text-xs text-gray-400 font-medium'>
+                                <span className='text-primary'>{s.icon}</span>
+                                {s.text}
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+
             </div>
         </div>
     )
 }
 
-export default HeroSection;
+export default HeroSection

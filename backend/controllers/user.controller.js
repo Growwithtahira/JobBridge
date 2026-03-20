@@ -35,10 +35,8 @@ export const register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Delete any existing OTPs for this email to prevent spam/confusion
         await Otp.deleteMany({ email });
 
         await Otp.create({
@@ -56,7 +54,6 @@ export const register = async (req, res) => {
             }
         });
 
-        // Send OTP via Email
         const emailSent = await sendEmail({
             email,
             subject: "JobBridge Registration OTP",
@@ -64,7 +61,6 @@ export const register = async (req, res) => {
         });
 
         if (!emailSent) {
-            // Delete the OTP we just created if email fails
             await Otp.deleteOne({ email, otp });
             return res.status(500).json({
                 message: "Failed to send OTP email. Please try again.",
@@ -105,10 +101,8 @@ export const verifyOtp = async (req, res) => {
             });
         }
 
-        // OTP valid, create user
         const userData = otpRecord.userData;
 
-        // Double check if user exists (in case they verified twice quickly)
         const userExists = await User.findOne({ email });
         if (userExists) {
             await Otp.deleteOne({ _id: otpRecord._id });
@@ -120,10 +114,8 @@ export const verifyOtp = async (req, res) => {
 
         const newUser = await User.create(userData);
 
-        // Delete OTP after successful registration
         await Otp.deleteOne({ _id: otpRecord._id });
 
-        // Generate token and login automatically
         const tokenData = {
             userId: newUser._id
         }
@@ -177,7 +169,6 @@ export const login = async (req, res) => {
                 success: false,
             })
         };
-        // check role is correct or not
         if (role !== user.role) {
             return res.status(400).json({
                 message: "Account doesn't exist with current role.",
@@ -224,14 +215,12 @@ export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
 
-        // MultiUpload ke baad req.files se data nikalna
         const resumeFile = req.files && req.files['file'] ? req.files['file'][0] : null;
         const dpFile = req.files && req.files['profilePhoto'] ? req.files['profilePhoto'][0] : null;
 
         let cloudResponseForResume;
         let cloudResponseForDP;
 
-        // 1. Agar Resume upload hua hai
         if (resumeFile) {
             const fileUri = getDataUri(resumeFile);
             cloudResponseForResume = await cloudinary.uploader.upload(fileUri.content, {
@@ -240,7 +229,6 @@ export const updateProfile = async (req, res) => {
             });
         }
 
-        // 2. Agar Profile Photo (DP) upload hui hai
         if (dpFile) {
             const fileUri = getDataUri(dpFile);
             cloudResponseForDP = await cloudinary.uploader.upload(fileUri.content, {
@@ -263,21 +251,19 @@ export const updateProfile = async (req, res) => {
             });
         }
 
-        // Updating Text Data
         if (fullname) user.fullname = fullname;
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
         if (bio) user.profile.bio = bio;
         if (skills) user.profile.skills = skillsArray;
 
-        // Updating Files in Database
         if (cloudResponseForResume) {
             user.profile.resume = cloudResponseForResume.secure_url;
             user.profile.resumeOriginalName = resumeFile.originalname;
         }
 
         if (cloudResponseForDP) {
-            user.profile.profilePhoto = cloudResponseForDP.secure_url; // DP save ho rahi hai
+            user.profile.profilePhoto = cloudResponseForDP.secure_url;
         }
 
         await user.save();
@@ -305,7 +291,6 @@ export const updateProfile = async (req, res) => {
     }
 }
 
-// --- Forgot Password Logic ---
 export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -318,19 +303,18 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Save OTP to DB (Expires in 10 mins)
+        // ✅ OTP + expiry dono save karo
         user.resetPasswordToken = otp;
-        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 min
+        user.isResetVerified = false; // ← reset flag clear karo
         await user.save();
 
-        // Send Email
         const emailSent = await sendEmail({
             email,
             subject: "JobBridge Password Reset OTP",
-            message: otp
+            message: `Your OTP for JobBridge password reset is: ${otp}. Valid for 10 minutes.`
         });
 
         if (!emailSent) {
@@ -350,7 +334,57 @@ export const forgotPassword = async (req, res) => {
         return res.status(500).json({
             message: "Internal server error",
             success: false,
-            error: error.message
+        });
+    }
+}
+
+// ✅ NEW — Yeh function pehle exist nahi karta tha, isliye OTP verify hi nahi hota tha
+export const verifyResetOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({
+                message: "Email and OTP are required.",
+                success: false
+            });
+        }
+
+        // ✅ 6 digit check
+        if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+            return res.status(400).json({
+                message: "OTP must be exactly 6 digits.",
+                success: false
+            });
+        }
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: otp,
+            resetPasswordExpires: { $gt: Date.now() } // ✅ Expiry check
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP. Please request a new one.",
+                success: false
+            });
+        }
+
+        // ✅ Mark karo ki OTP verify ho gaya — ab reset allowed hai
+        user.isResetVerified = true;
+        await user.save();
+
+        return res.status(200).json({
+            message: "OTP verified successfully!",
+            success: true
+        });
+
+    } catch (error) {
+        console.error("verifyResetOtp Error:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
         });
     }
 }
@@ -359,26 +393,48 @@ export const resetPassword = async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
 
-        const user = await User.findOne({
-            email,
-            resetPasswordToken: otp,
-            resetPasswordExpires: { $gt: Date.now() } // Check if token is not expired
-        });
-
-        if (!user) {
+        if (!email || !otp || !newPassword) {
             return res.status(400).json({
-                message: "Invalid or expired OTP",
+                message: "All fields are required.",
                 success: false
             });
         }
 
-        // Hash new password
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                message: "Password must be at least 6 characters.",
+                success: false
+            });
+        }
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: otp,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP.",
+                success: false
+            });
+        }
+
+        // ✅ isResetVerified check — bina OTP verify kiye direct API call block
+        if (!user.isResetVerified) {
+            return res.status(403).json({
+                message: "OTP not verified. Please verify OTP first.",
+                success: false
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
 
-        // Clear reset token fields
+        // ✅ Sab fields clear karo
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
+        user.isResetVerified = false;
         await user.save();
 
         return res.status(200).json({
@@ -390,6 +446,7 @@ export const resetPassword = async (req, res) => {
         console.log(error);
         return res.status(500).json({
             message: "Internal server error",
+            success: false
         });
     }
 }
@@ -405,7 +462,6 @@ export const googleLogin = async (req, res) => {
         let user = await User.findOne({ email });
 
         if (!user) {
-            // Register new user
             if (!role) {
                 return res.status(400).json({ message: "Role is required for new registration. Please Signup first.", success: false });
             }
