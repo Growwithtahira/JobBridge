@@ -23,7 +23,7 @@ const BrandLogo = ({ size = 'md' }) => {
             <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-primary/20 blur-md rounded-xl" />
 
-                <img src={logo} alt="JobBridge" className={`relative z-10 ${size === 'sm' ? 'w-13 h-13' : 'w-14 h-14'} object-contain drop-shadow-sm`} />
+                <img src={logo} alt="JobBridge" className={`relative z-10 ${size === 'sm' ? 'w-10 h-10' : 'w-11 h-11'} object-contain drop-shadow-sm`} />
 
             </div>
             <span className={`${textSize} font-black tracking-tight leading-none`}>
@@ -34,7 +34,7 @@ const BrandLogo = ({ size = 'md' }) => {
                     </span>
                     <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-violet-500 to-indigo-400 rounded-full opacity-60" />
                 </span>
-                <span className="text-violet-400 ml-0.5">.</span>
+                <span className="text-violet-400 ml-0.5"> </span>
             </span>
         </div>
     )
