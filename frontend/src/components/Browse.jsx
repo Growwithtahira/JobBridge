@@ -10,7 +10,10 @@ import {
     Sparkles, ChevronDown, LayoutGrid, List,
     Clock, Building2, Zap, SlidersHorizontal, ArrowRight
 } from 'lucide-react'
-
+const isJsonPayload = (str) => {
+    try { const p = JSON.parse(str); return typeof p === 'object' && p !== null }
+    catch { return false }
+}
 // ─── Animation variants ────────────────────────────────────────────────────────
 const containerVariants = {
     hidden: {},
@@ -100,13 +103,17 @@ const Browse = () => {
     const { allJobs, searchedQuery } = useSelector(store => store.job)
     const dispatch = useDispatch()
 
-    const [localQuery, setLocalQuery] = useState(searchedQuery || '')
+    const [localQuery, setLocalQuery] = useState(
+        searchedQuery && !isJsonPayload(searchedQuery) ? searchedQuery : ''
+    )
     const [filterJobs, setFilterJobs] = useState(allJobs)
     const [quickFilter, setQuickFilter] = useState('')
     const [sortMode, setSortMode] = useState('newest')
     const [viewMode, setViewMode] = useState('grid')
     const [sortOpen, setSortOpen] = useState(false)
     const sortRef = useRef(null)
+
+
 
     // Cleanup on unmount
     useEffect(() => () => dispatch(setSearchedQuery('')), [dispatch])
@@ -121,6 +128,11 @@ const Browse = () => {
     }, [])
 
     // Debounce local input → redux (300ms)
+    useEffect(() => {
+        if (searchedQuery && isJsonPayload(searchedQuery)) {
+            setLocalQuery('')
+        }
+    }, [searchedQuery])
     useEffect(() => {
         const t = setTimeout(() => dispatch(setSearchedQuery(localQuery)), 300)
         return () => clearTimeout(t)
@@ -190,7 +202,16 @@ const Browse = () => {
                         className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-1"
                     >
                         {searchedQuery
-                            ? <>Results for <span className="text-purple-600">"{searchedQuery}"</span></>
+                            ? (() => {
+                                try {
+                                    const p = JSON.parse(searchedQuery)
+                                    return typeof p === 'object'
+                                        ? <>Filtered <span className="text-purple-600">Results</span></>
+                                        : <>Results for <span className="text-purple-600">"{searchedQuery}"</span></>
+                                } catch {
+                                    return <>Results for <span className="text-purple-600">"{searchedQuery}"</span></>
+                                }
+                            })()
                             : <>Browse <span className="text-purple-600">Opportunities</span></>
                         }
                     </motion.h1>
