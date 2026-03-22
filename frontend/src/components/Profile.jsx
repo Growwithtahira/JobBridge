@@ -61,8 +61,8 @@ const CompletionRing = ({ percent }) => {
     const circ = 2 * Math.PI * r
     const dash = (percent / 100) * circ
     return (
-        <div className="relative w-16 h-16 flex items-center justify-center">
-            <svg className="absolute inset-0 -rotate-90" width="64" height="64">
+        <div className="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+            <svg className="absolute inset-0 -rotate-90" width="64" height="64" viewBox="0 0 64 64">
                 <circle cx="32" cy="32" r={r} fill="none" stroke="#f3f0ff" strokeWidth="5" />
                 <motion.circle
                     cx="32" cy="32" r={r} fill="none"
