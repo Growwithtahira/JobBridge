@@ -13,7 +13,7 @@ import { signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '@/utils/firebase'
 import AuthLayout from './AuthLayout'
 import PremiumMascot from './PremiumMascot'
-import OtpInput from './OtpInput'   // ✅ Bahar wali file se import
+import OtpInput from './OtpInput'
 import {
     Loader2, Eye, EyeOff, User, Mail, Phone,
     Lock, Camera, CheckCircle2, ArrowRight,
@@ -248,7 +248,6 @@ const Signup = () => {
                             </p>
                         </div>
 
-                        {/* Role selector */}
                         <div className="flex gap-3 mb-5">
                             {[
                                 { value: 'student', label: 'Job Seeker', icon: GraduationCap },
@@ -283,13 +282,13 @@ const Signup = () => {
                                 <Field label="Full Name" icon={User} error={errors.fullname}>
                                     <Input name="fullname" value={input.fullname} onChange={onChange}
                                         onFocus={() => setActiveField('fullname')} onBlur={() => setActiveField(null)}
-                                        placeholder="Your full name"
+                                        autoComplete="off" placeholder="Your full name"
                                         className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.fullname ? 'border-red-300' : ''}`} />
                                 </Field>
                                 <Field label="Phone" icon={Phone} error={errors.phoneNumber}>
                                     <Input name="phoneNumber" value={input.phoneNumber} onChange={onChange}
                                         onFocus={() => setActiveField('phoneNumber')} onBlur={() => setActiveField(null)}
-                                        placeholder="+91 XXXXX XXXXX" type="tel"
+                                        autoComplete="off" placeholder="+91 XXXXX XXXXX" type="tel"
                                         className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.phoneNumber ? 'border-red-300' : ''}`} />
                                 </Field>
                             </div>
@@ -297,7 +296,7 @@ const Signup = () => {
                             <Field label="Email Address" icon={Mail} error={errors.email}>
                                 <Input name="email" value={input.email} type="email" onChange={onChange}
                                     onFocus={() => setActiveField('email')} onBlur={() => setActiveField(null)}
-                                    placeholder="you@email.com"
+                                    autoComplete="off" placeholder="you@email.com"
                                     className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.email ? 'border-red-300' : ''}`} />
                             </Field>
 
@@ -306,7 +305,7 @@ const Signup = () => {
                                     <Input name="password" value={input.password}
                                         type={showPassword ? 'text' : 'password'} onChange={onChange}
                                         onFocus={() => setActiveField('password')} onBlur={() => setActiveField(null)}
-                                        placeholder="Min 6 characters"
+                                        autoComplete="new-password" placeholder="Min 6 characters"
                                         className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm pr-11 ${errors.password ? 'border-red-300' : ''}`} />
                                     <button type="button" onClick={() => setShowPassword(s => !s)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
@@ -328,7 +327,6 @@ const Signup = () => {
                                 )}
                             </Field>
 
-                            {/* Profile photo */}
                             <div className="flex items-center gap-4 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
                                 <div className="flex-shrink-0">
                                     {previewPhoto
@@ -402,7 +400,6 @@ const Signup = () => {
                                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center block mb-4">
                                     Enter OTP
                                 </Label>
-                                {/* ✅ Bahar wala fixed OtpInput use ho raha hai */}
                                 <OtpInput value={otp} onChange={setOtp} />
                             </div>
 

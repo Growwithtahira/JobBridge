@@ -6,6 +6,7 @@ import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
+// ── Register — OTP verification wapas ────────────────────────────────────────
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
@@ -15,7 +16,7 @@ export const register = async (req, res) => {
                 message: "Something is missing",
                 success: false
             });
-        };
+        }
 
         const user = await User.findOne({ email });
         if (user) {
@@ -35,6 +36,7 @@ export const register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // ✅ OTP generate karo
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         await Otp.deleteMany({ email });
@@ -48,16 +50,15 @@ export const register = async (req, res) => {
                 phoneNumber,
                 password: hashedPassword,
                 role,
-                profile: {
-                    profilePhoto: profilePhoto,
-                }
+                profile: { profilePhoto }
             }
         });
 
+        // ✅ Email bhejo
         const emailSent = await sendEmail({
             email,
             subject: "JobBridge Registration OTP",
-            message: `Your OTP for JobBridge registration is: ${otp}. It is valid for 5 minutes.`
+            message: otp
         });
 
         if (!emailSent) {
@@ -72,6 +73,7 @@ export const register = async (req, res) => {
             message: "OTP sent successfully. Please check your email.",
             success: true
         });
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -113,12 +115,9 @@ export const verifyOtp = async (req, res) => {
         }
 
         const newUser = await User.create(userData);
-
         await Otp.deleteOne({ _id: otpRecord._id });
 
-        const tokenData = {
-            userId: newUser._id
-        }
+        const tokenData = { userId: newUser._id }
         const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         const userResponse = {
@@ -130,7 +129,12 @@ export const verifyOtp = async (req, res) => {
             profile: newUser.profile
         }
 
-        return res.status(201).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true }).json({
+        return res.status(201).cookie("token", token, {
+            maxAge: 1 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+        }).json({
             message: "Account created successfully.",
             user: userResponse,
             success: true
@@ -154,7 +158,8 @@ export const login = async (req, res) => {
                 message: "Something is missing",
                 success: false
             });
-        };
+        }
+
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
@@ -162,23 +167,23 @@ export const login = async (req, res) => {
                 success: false,
             })
         }
+
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
                 message: "Incorrect email or password.",
                 success: false,
             })
-        };
+        }
+
         if (role !== user.role) {
             return res.status(400).json({
                 message: "Account doesn't exist with current role.",
                 success: false
             })
-        };
-
-        const tokenData = {
-            userId: user._id
         }
+
+        const tokenData = { userId: user._id }
         const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         user = {
@@ -190,7 +195,12 @@ export const login = async (req, res) => {
             profile: user.profile
         }
 
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true }).json({
+        return res.status(200).cookie("token", token, {
+            maxAge: 1 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+        }).json({
             message: `Welcome back ${user.fullname}`,
             user,
             success: true
@@ -202,7 +212,12 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0, httpOnly: true, sameSite: 'none', secure: true }).json({
+        return res.status(200).cookie("token", "", {
+            maxAge: 0,
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+        }).json({
             message: "Logged out successfully.",
             success: true
         })
@@ -305,16 +320,15 @@ export const forgotPassword = async (req, res) => {
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // ✅ OTP + expiry dono save karo
         user.resetPasswordToken = otp;
-        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 min
-        user.isResetVerified = false; // ← reset flag clear karo
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+        user.isResetVerified = false;
         await user.save();
 
         const emailSent = await sendEmail({
             email,
             subject: "JobBridge Password Reset OTP",
-            message: `Your OTP for JobBridge password reset is: ${otp}. Valid for 10 minutes.`
+            message: otp
         });
 
         if (!emailSent) {
@@ -338,7 +352,6 @@ export const forgotPassword = async (req, res) => {
     }
 }
 
-// ✅ NEW — Yeh function pehle exist nahi karta tha, isliye OTP verify hi nahi hota tha
 export const verifyResetOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -350,7 +363,6 @@ export const verifyResetOtp = async (req, res) => {
             });
         }
 
-        // ✅ 6 digit check
         if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
             return res.status(400).json({
                 message: "OTP must be exactly 6 digits.",
@@ -361,7 +373,7 @@ export const verifyResetOtp = async (req, res) => {
         const user = await User.findOne({
             email,
             resetPasswordToken: otp,
-            resetPasswordExpires: { $gt: Date.now() } // ✅ Expiry check
+            resetPasswordExpires: { $gt: Date.now() }
         });
 
         if (!user) {
@@ -371,7 +383,6 @@ export const verifyResetOtp = async (req, res) => {
             });
         }
 
-        // ✅ Mark karo ki OTP verify ho gaya — ab reset allowed hai
         user.isResetVerified = true;
         await user.save();
 
@@ -420,7 +431,6 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        // ✅ isResetVerified check — bina OTP verify kiye direct API call block
         if (!user.isResetVerified) {
             return res.status(403).json({
                 message: "OTP not verified. Please verify OTP first.",
@@ -430,8 +440,6 @@ export const resetPassword = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
-
-        // ✅ Sab fields clear karo
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         user.isResetVerified = false;
@@ -463,7 +471,10 @@ export const googleLogin = async (req, res) => {
 
         if (!user) {
             if (!role) {
-                return res.status(400).json({ message: "Role is required for new registration. Please Signup first.", success: false });
+                return res.status(400).json({
+                    message: "Role is required for new registration. Please Signup first.",
+                    success: false
+                });
             }
             user = await User.create({
                 fullname: displayName,
@@ -471,9 +482,7 @@ export const googleLogin = async (req, res) => {
                 phoneNumber: 0,
                 password: "",
                 role,
-                profile: {
-                    profilePhoto: photoURL
-                },
+                profile: { profilePhoto: photoURL },
                 googleId: uid
             });
         }
@@ -481,7 +490,12 @@ export const googleLogin = async (req, res) => {
         const tokenData = { userId: user._id };
         const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none', secure: true }).json({
+        return res.status(200).cookie("token", token, {
+            maxAge: 1 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true
+        }).json({
             message: `Welcome back ${user.fullname}`,
             user,
             success: true
@@ -489,6 +503,10 @@ export const googleLogin = async (req, res) => {
 
     } catch (error) {
         console.error("Google Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error", success: false, error: error.message });
+        return res.status(500).json({
+            message: "Internal Server Error",
+            success: false,
+            error: error.message
+        });
     }
 }

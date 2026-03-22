@@ -21,7 +21,7 @@ app.use(cookieParser());
 const corsOptions = {
     // Render par FRONTEND_URL variable mein aapka Vercel link hona chahiye
     origin: process.env.FRONTEND_URL ||
-        "https://job-bridge-tahira.vercel.app",
+        "http://localhost:5173",
     credentials: true,
 };
 app.use(cors(corsOptions));
