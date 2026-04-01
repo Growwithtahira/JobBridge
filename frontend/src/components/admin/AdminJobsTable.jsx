@@ -109,7 +109,7 @@ const ActionMenu = ({ job, onDeleteClick }) => {
                 </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-44 p-2 rounded-2xl shadow-xl border-gray-100 bg-white">
-                <button onClick={() => navigate(`/admin/companies/${job._id}`)}
+                <button onClick={() => navigate(`/admin/jobs/${job._id}`)}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-purple-50 hover:text-primary transition-colors text-sm font-medium group">
                     <div className="w-6 h-6 rounded-lg bg-gray-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
                         <Edit2 size={12} />
@@ -263,7 +263,7 @@ const AdminJobsTable = () => {
                             </div>
 
                             <div className="flex gap-2 mt-3 pt-3 border-t border-gray-50">
-                                <button onClick={() => navigate(`/admin/companies/${job._id}`)}
+                                <button onClick={() => navigate(`/admin/jobs/${job._id}`)}
                                     className="flex-1 h-8 rounded-xl border border-gray-200 text-gray-600 hover:border-primary hover:text-primary hover:bg-purple-50 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
                                     <Edit2 size={11} /> Edit
                                 </button>

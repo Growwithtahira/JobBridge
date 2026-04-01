@@ -30,14 +30,11 @@ export const registerCompany = async (req, res) => {
 
 export const getCompany = async (req, res) => {
     try {
-        const userId = req.id;
-        const companies = await Company.find({ userId });
-        if (!companies || companies.length === 0) {
-            return res.status(404).json({ message: "Companies not found.", success: false });
-        }
-        return res.status(200).json({ companies, success: true });
+        const userId = req.id  // ← token se aata hai
+        const companies = await Company.find({ userId })  // ← sirf uski
+        return res.status(200).json({ companies, success: true })
     } catch (error) {
-        console.log(error);
+        return res.status(500).json({ success: false })
     }
 }
 

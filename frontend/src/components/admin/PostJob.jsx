@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import axios from 'axios'
 import { JOB_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import useGetJobById from '@/hooks/useGetJobById'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Loader2, ArrowLeft, Briefcase, MapPin, DollarSign,
@@ -64,7 +65,12 @@ const Section = ({ title, icon: Icon, children }) => (
 // ── Main ───────────────────────────────────────────────────────────────────────
 const PostJob = () => {
     const { companies } = useSelector(store => store.company)
+    const { singleJob } = useSelector(store => store.job)
     const navigate = useNavigate()
+    const params = useParams()
+    useGetJobById(params.id)
+
+    const isEdit = !!params.id;
 
     const [input, setInput] = useState({
         title: '', description: '', requirements: '',
@@ -74,6 +80,22 @@ const PostJob = () => {
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(false)
     const [done, setDone] = useState(false)
+
+    React.useEffect(() => {
+        if (isEdit && singleJob) {
+            setInput({
+                title: singleJob.title || '',
+                description: singleJob.description || '',
+                requirements: singleJob.requirements?.join(',') || '',
+                salary: singleJob.salary || '',
+                location: singleJob.location || '',
+                jobType: singleJob.jobType || '',
+                experienceLevel: singleJob.experienceLevel || '',
+                position: singleJob.position || 1,
+                companyId: singleJob.company?._id || singleJob.company || ''
+            })
+        }
+    }, [singleJob, isEdit])
 
     const onChange = (e) => {
         setInput(p => ({ ...p, [e.target.name]: e.target.value }))
@@ -113,7 +135,8 @@ const PostJob = () => {
         if (!validate()) return
         try {
             setLoading(true)
-            const res = await axios.post(`${JOB_API_END_POINT}/post`, input, {
+            const url = isEdit ? `${JOB_API_END_POINT}/update/${params.id}` : `${JOB_API_END_POINT}/post`
+            const res = await axios[isEdit ? 'put' : 'post'](url, input, {
                 headers: { 'Content-Type': 'application/json' },
                 withCredentials: true
             })
@@ -123,7 +146,7 @@ const PostJob = () => {
                 setTimeout(() => navigate('/admin/jobs'), 1200)
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to post job')
+            toast.error(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'post'} job`)
         } finally {
             setLoading(false)
         }
@@ -148,7 +171,7 @@ const PostJob = () => {
 
                 {/* Page header */}
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42 }}>
-                    <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Post a New Job</h1>
+                    <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{isEdit ? 'Update Job' : 'Post a New Job'}</h1>
                     <p className="text-sm text-gray-400 mt-0.5 font-medium">
                         All fields marked <span className="text-red-400">*</span> are required
                     </p>
@@ -179,27 +202,57 @@ const PostJob = () => {
                     {/* ── Basic Info ─────────────────────────────────────── */}
                     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
                         <Section title="Basic Information" icon={Briefcase}>
-                            <Field label="Job Title" icon={Briefcase} error={errors.title} required>
-                                <Input name="title" value={input.title} onChange={onChange}
-                                    placeholder="e.g. Senior React Developer"
-                                    className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.title ? 'border-red-300' : ''}`} />
-                            </Field>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <Field label="Job Title" icon={Briefcase} error={errors.title} required>
+                                    <Input name="title" value={input.title} onChange={onChange}
+                                        placeholder="e.g. Senior React Developer"
+                                        className={`h-11 bg-white rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.title ? 'border-red-300' : ''}`} />
+                                </Field>
+
+                                {!noCompany && (
+                                    <Field label="Select Company" icon={Building2} error={errors.companyId} required>
+                                        <Select onValueChange={onCompany} value={companies.find(c => c._id === input.companyId)?.name.toLowerCase() || ''}>
+                                            <SelectTrigger className={`h-11 bg-white rounded-xl border-gray-200 text-sm focus:ring-purple-400 ${errors.companyId ? 'border-red-300' : ''}`}>
+                                                <SelectValue placeholder="Choose a company" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-white rounded-2xl border border-gray-100 shadow-xl z-[9999]">
+                                                <SelectGroup>
+                                                    {companies.map(c => (
+                                                        <SelectItem key={c._id} value={c.name.toLowerCase()}
+                                                            className="cursor-pointer rounded-xl hover:bg-purple-50 focus:bg-purple-50 focus:text-primary text-sm font-medium">
+                                                            {c.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <Field label="Location" icon={MapPin} error={errors.location} required>
+                                    <Input name="location" value={input.location} onChange={onChange}
+                                        placeholder="e.g. Bareilly / Remote"
+                                        className={`h-11 bg-white rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.location ? 'border-red-300' : ''}`} />
+                                </Field>
+
+                                {/* ✅ Requirements is now required */}
+                                <Field label="Requirements" icon={Star} error={errors.requirements} required
+                                    hint={!errors.requirements ? 'Comma-separated: React, Node.js, SQL…' : undefined}>
+                                    <Input name="requirements" value={input.requirements} onChange={onChange}
+                                        placeholder="React, Node.js, MongoDB…"
+                                        className={`h-11 bg-white rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.requirements ? 'border-red-300' : ''}`} />
+                                </Field>
+                            </div>
 
                             <Field label="Description" icon={FileText} error={errors.description} required
                                 hint={!errors.description ? `${input.description.length}/500 characters` : undefined}>
                                 <textarea name="description" value={input.description} onChange={onChange}
                                     maxLength={500} rows={3}
                                     placeholder="Describe the role, responsibilities and expectations…"
-                                    className={`w-full px-3 py-2.5 text-sm rounded-xl border focus:border-primary focus:ring-1 focus:ring-purple-400 outline-none resize-none text-gray-700 placeholder-gray-300 transition-colors
+                                    className={`w-full bg-white px-3 py-2.5 text-sm rounded-xl border focus:border-primary focus:ring-1 focus:ring-purple-400 outline-none resize-none text-gray-700 placeholder-gray-300 transition-colors
                                         ${errors.description ? 'border-red-300' : 'border-gray-200'}`} />
-                            </Field>
-
-                            {/* ✅ Requirements is now required */}
-                            <Field label="Requirements" icon={Star} error={errors.requirements} required
-                                hint={!errors.requirements ? 'Comma-separated: React, Node.js, SQL…' : undefined}>
-                                <Input name="requirements" value={input.requirements} onChange={onChange}
-                                    placeholder="React, Node.js, MongoDB…"
-                                    className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.requirements ? 'border-red-300' : ''}`} />
                             </Field>
                         </Section>
                     </motion.div>
@@ -227,24 +280,18 @@ const PostJob = () => {
                                 </div>
                             </Field>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                 <Field label="Salary (LPA)" icon={DollarSign} error={errors.salary} required>
                                     <Input name="salary" value={input.salary} onChange={onChange}
                                         type="number" min="0" placeholder="e.g. 8"
-                                        className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.salary ? 'border-red-300' : ''}`} />
-                                </Field>
-
-                                <Field label="Location" icon={MapPin} error={errors.location} required>
-                                    <Input name="location" value={input.location} onChange={onChange}
-                                        placeholder="e.g. Bareilly / Remote"
-                                        className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.location ? 'border-red-300' : ''}`} />
+                                        className={`h-11 bg-white rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.salary ? 'border-red-300' : ''}`} />
                                 </Field>
 
                                 {/* ✅ Experience is now required */}
                                 <Field label="Experience (Years)" icon={Star} error={errors.experienceLevel} required>
                                     <Input name="experienceLevel" value={input.experienceLevel} onChange={onChange}
                                         type="number" min="0" placeholder="e.g. 2"
-                                        className={`h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.experienceLevel ? 'border-red-300' : ''}`} />
+                                        className={`h-11 bg-white rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm ${errors.experienceLevel ? 'border-red-300' : ''}`} />
                                 </Field>
 
                                 <Field label="No. of Positions" icon={Users} error={errors.position} required>
@@ -256,7 +303,7 @@ const PostJob = () => {
                                         </button>
                                         <Input name="position" value={input.position} onChange={onChange}
                                             type="number" min="1"
-                                            className="h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm text-center font-bold" />
+                                            className="bg-white h-11 rounded-xl border-gray-200 focus-visible:ring-purple-400 text-sm text-center font-bold" />
                                         <button type="button"
                                             onClick={() => setInput(p => ({ ...p, position: p.position + 1 }))}
                                             className="w-11 h-11 rounded-xl border border-gray-200 bg-white hover:bg-purple-50 hover:border-purple-200 text-gray-600 hover:text-primary font-bold text-lg flex items-center justify-center transition-all flex-shrink-0">
@@ -268,38 +315,15 @@ const PostJob = () => {
                         </Section>
                     </motion.div>
 
-                    {/* ── Company ────────────────────────────────────────── */}
-                    {!noCompany && (
-                        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
-                            <Section title="Company" icon={Building2}>
-                                <Field label="Select Company" icon={Building2} error={errors.companyId} required>
-                                    <Select onValueChange={onCompany}>
-                                        <SelectTrigger className={`h-11 rounded-xl border-gray-200 text-sm focus:ring-purple-400 ${errors.companyId ? 'border-red-300' : ''}`}>
-                                            <SelectValue placeholder="Choose a company" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-2xl border-gray-100 shadow-xl">
-                                            <SelectGroup>
-                                                {companies.map(c => (
-                                                    <SelectItem key={c._id} value={c.name.toLowerCase()}
-                                                        className="cursor-pointer rounded-xl hover:bg-purple-50 focus:bg-purple-50 focus:text-primary text-sm">
-                                                        {c.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </Field>
-                            </Section>
-                        </motion.div>
-                    )}
+
 
                     {/* Submit */}
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, delay: 0.2 }}>
                         <Button type="submit" disabled={loading || done || noCompany}
                             className="w-full h-12 font-bold bg-primary hover:bg-violet-700 text-white rounded-xl shadow-md shadow-purple-200 hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0">
-                            {loading ? <><Loader2 size={16} className="animate-spin" /> Posting…</>
-                                : done ? <><CheckCircle2 size={16} /> Job Posted!</>
-                                    : <>Post Job <ArrowRight size={15} /></>}
+                            {loading ? <><Loader2 size={16} className="animate-spin" /> {isEdit ? 'Updating…' : 'Posting…'}</>
+                                : done ? <><CheckCircle2 size={16} /> Job {isEdit ? 'Updated' : 'Posted'}!</>
+                                    : <>{isEdit ? 'Update Job' : 'Post Job'} <ArrowRight size={15} /></>}
                         </Button>
                     </motion.div>
                 </form>

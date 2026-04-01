@@ -52,13 +52,13 @@ const CompanySetup = () => {
 
     useEffect(() => {
         setInput({
-            name: singleCompany.name || '',
-            description: singleCompany.description || '',
-            website: singleCompany.website || '',
-            location: singleCompany.location || '',
+            name: singleCompany?.name || '',
+            description: singleCompany?.description || '',
+            website: singleCompany?.website || '',
+            location: singleCompany?.location || '',
             file: null
         })
-        if (singleCompany.logo) setPreview(singleCompany.logo)
+        if (singleCompany?.logo) setPreview(singleCompany.logo)
     }, [singleCompany])
 
     const onChange = (e) => {

@@ -77,6 +77,10 @@ const appRouter = createBrowserRouter([
     element: <ProtectedRoute><PageTransition><PostJob /></PageTransition></ProtectedRoute>
   },
   {
+    path: "/admin/jobs/:id",
+    element: <ProtectedRoute><PageTransition><PostJob /></PageTransition></ProtectedRoute>
+  },
+  {
     path: "/admin/jobs/:id/applicants",
     element: <ProtectedRoute><PageTransition><Applicants /></PageTransition></ProtectedRoute>
   },

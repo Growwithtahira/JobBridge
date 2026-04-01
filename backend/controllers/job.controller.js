@@ -79,17 +79,13 @@ export const getJobById = async (req, res) => {
 // Admin (Recruiter) side - Only show jobs created by this admin
 export const getAdminJobs = async (req, res) => {
     try {
-        const adminId = req.id;
-        const jobs = await Job.find({ created_by: adminId }).populate({
-            path: 'company'
-        }).sort({ createdAt: -1 });
-
-        if (!jobs || jobs.length === 0) {
-            return res.status(404).json({ message: "No jobs found.", success: false });
-        };
-        return res.status(200).json({ jobs, success: true });
+        const adminId = req.id  // ← token se aata hai
+        const jobs = await Job.find({ created_by: adminId })  // ← sirf uski
+            .populate({ path: 'company' })
+            .sort({ createdAt: -1 })
+        return res.status(200).json({ jobs, success: true })
     } catch (error) {
-        console.log(error);
+        return res.status(500).json({ success: false })
     }
 }
 export const deleteJob = async (req, res) => {
@@ -111,5 +107,41 @@ export const deleteJob = async (req, res) => {
     } catch (error) {
         console.log("Delete Job Error:", error)
         return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}
+
+export const updateJob = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const { title, description, requirements, salary, location, jobType, experienceLevel, position, companyId } = req.body;
+        const userId = req.id;
+
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found.", success: false });
+        }
+
+        if (job.created_by.toString() !== userId) {
+            return res.status(403).json({ message: "You are not authorized to update this job.", success: false });
+        }
+
+        const updateData = {
+            title, description, salary, location, jobType, experienceLevel, position, company: companyId
+        };
+        
+        if (requirements) {
+            updateData.requirements = typeof requirements === 'string' ? requirements.split(",") : requirements;
+        }
+
+        const updatedJob = await Job.findByIdAndUpdate(jobId, updateData, { new: true });
+
+        return res.status(200).json({
+            message: "Job updated successfully.",
+            job: updatedJob,
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Server error", success: false });
     }
 }
