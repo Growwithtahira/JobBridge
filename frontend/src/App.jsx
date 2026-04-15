@@ -21,6 +21,7 @@ import PageTransition from './components/shared/PageTransition'
 
 // 👈 Apna NotFound page yahan import karein (agar pages folder me banaya hai toh path check kar lein)
 import NotFound from './components/NotFound'
+import CreateResume from './components/CreateResume'
 
 const appRouter = createBrowserRouter([
   {
@@ -54,6 +55,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/profile",
     element: <PageTransition><Profile /></PageTransition>
+  },
+  {
+    path: "/create-resume",
+    element: <PageTransition><CreateResume /></PageTransition>
   },
   // admin ke liye yha se start hoga
   {
