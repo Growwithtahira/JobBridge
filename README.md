@@ -267,7 +267,7 @@ This project helped strengthen practical knowledge in:
 
 GitHub: https://github.com/Growwithtahira
 
-LinkedIn: https://www.linkedin.com/in/tahirafatima
+LinkedIn: https://www.linkedin.com/in/tahirafatima770?utm_source=share_via&utm_content=profile&utm_medium=member_android
 
 Portfolio: https://job-bridge-tahira.vercel.app/
 
