@@ -8,6 +8,7 @@ import UpdateProfileDialog from './UpdateProfileDialog'
 import { useSelector } from 'react-redux'
 import useGetAppliedJobs from '@/hooks/useGetAppliedJobs'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import {
     Mail, Phone, Pen, FileText, Download, Briefcase,
     CheckCircle2, Clock, XCircle, Star, MapPin,
@@ -256,10 +257,16 @@ const Profile = () => {
                         title="Resume"
                         delay={0.15}
                         action={
-                            <button onClick={() => setOpen(true)}
-                                className="text-xs font-semibold text-primary hover:text-violet-700 flex items-center gap-1 transition-colors">
-                                <Pen size={11} /> {isResume ? 'Update' : 'Upload'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <Link to="/create-resume"
+                                    className="text-xs font-semibold text-primary hover:text-violet-700 flex items-center gap-1 transition-colors bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg">
+                                    <FileText size={11} /> Build Resume
+                                </Link>
+                                <button onClick={() => setOpen(true)}
+                                    className="text-xs font-semibold text-primary hover:text-violet-700 flex items-center gap-1 transition-colors">
+                                    <Pen size={11} /> {isResume ? 'Update' : 'Upload'}
+                                </button>
+                            </div>
                         }
                     >
                         {isResume ? (
@@ -294,6 +301,10 @@ const Profile = () => {
                                     className="mt-2 text-xs text-primary font-bold hover:underline">
                                     + Upload resume
                                 </button>
+                                <Link to="/create-resume"
+                                    className="mt-1.5 text-xs text-primary font-bold hover:underline flex items-center gap-1">
+                                    <FileText size={11} /> Or build one here
+                                </Link>
                             </div>
                         )}
                     </Section>

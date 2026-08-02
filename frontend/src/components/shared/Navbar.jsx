@@ -4,7 +4,7 @@ import { Button } from '../ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
 import {
     LogOut, User2, Menu, X, Home, Search,
-    LayoutGrid, Building2, Briefcase, ChevronRight, Bell, Sparkles
+    LayoutGrid, Building2, Briefcase, ChevronRight, Bell, Sparkles, FileText
 } from 'lucide-react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -131,6 +131,7 @@ const Navbar = () => {
         { to: '/', icon: Home, label: 'Home' },
         { to: '/jobs', icon: Search, label: 'Find Jobs' },
         { to: '/browse', icon: LayoutGrid, label: 'Browse' },
+        { to: '/create-resume', icon: FileText, label: 'Resume Builder' },
     ]
     const recruiterLinks = [
         { to: '/admin/companies', icon: Building2, label: 'Companies' },
